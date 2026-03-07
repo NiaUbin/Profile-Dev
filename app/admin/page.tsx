@@ -1,29 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Users, Activity, Briefcase, RefreshCw } from "lucide-react";
-import { getProjects, getMessages } from "@/lib/firestore";
+import { LayoutDashboard, Users, Activity, Briefcase, RefreshCw, Eye } from "lucide-react";
+import { getProjects, getMessages, getVisits } from "@/lib/firestore";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
     projects: 0,
     messages: 0,
+    visits: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<string>("");
 
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const [projects, messages] = await Promise.all([
+      const [projects, messages, visits] = await Promise.all([
         getProjects(),
         getMessages(),
+        getVisits(),
       ]);
       setStats({
         projects: projects.length,
         messages: messages.length,
+        visits: visits,
       });
-      setLastUpdated(new Date().toLocaleTimeString("th-TH"));
     } catch (error) {
       console.error("Error fetching stats:", error);
     } finally {
@@ -36,6 +37,7 @@ export default function AdminDashboard() {
   }, []);
 
   const statCards = [
+    { title: "ยอดเข้าชมเว็บ", value: stats.visits, icon: Eye, color: "bg-purple-50 text-purple-600" },
     { title: "ผลงานทั้งหมด", value: stats.projects, icon: Briefcase, color: "bg-blue-50 text-blue-600" },
     { title: "ข้อความติดต่อ", value: stats.messages, icon: Users, color: "bg-emerald-50 text-emerald-600" },
   ];
@@ -97,12 +99,10 @@ export default function AdminDashboard() {
             <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
             Firestore พร้อมใช้งาน
           </div>
-          {lastUpdated && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-              อัปเดตล่าสุด: {lastUpdated}
-            </div>
-          )}
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
+            Firestore ติดต่อฐานข้อมูลการเข้าชมสำเร็จ
+          </div>
         </div>
       </div>
     </div>

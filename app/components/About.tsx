@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { CardFrame, ProgressBar } from './GamerUI';
-import { User, Code2, Server, Globe, Zap, Star, Briefcase, GraduationCap } from 'lucide-react';
+import { User, Code2, Server, Globe, Zap, Star, Briefcase, GraduationCap, FileText } from 'lucide-react';
 import Image from 'next/image';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -77,6 +77,18 @@ export const About: React.FC = () => {
                   <p className="text-xs md:text-sm font-orbitron truncate">{t('about.locationValue')}</p>
                 </div>
               </div>
+              
+              {/* View CV Button */}
+              <div className="pt-2">
+                <a 
+                  href="#"
+                  className="w-full relative group flex items-center justify-center gap-2.5 px-4 py-2.5 md:py-3 bg-cyan-500 text-slate-950 border border-cyan-400 rounded-lg font-orbitron text-xs md:text-sm font-bold tracking-wider hover:bg-cyan-400 hover:scale-[1.02] transition-all duration-300 shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(34,211,238,0.6)] overflow-hidden"
+                >
+                  <div className="absolute inset-0 w-full h-full -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 ease-in-out"></div>
+                  <FileText className="w-4 h-4 md:w-5 md:h-5 relative z-10 transition-transform duration-300 group-hover:-translate-y-0.5" />
+                  <span className="relative z-10 transition-transform duration-300 group-hover:-translate-y-0.5">VIEW CV</span>
+                </a>
+              </div>
             </div>
           </CardFrame>
         </div>
@@ -106,14 +118,19 @@ export const About: React.FC = () => {
                 <Code2 className="text-cyan-400 w-4 h-4 md:w-5 md:h-5" /> 
                 <span className="text-cyan-400">Frontend</span>
               </h3>
-              <div className="space-y-1">
+              <div className="flex flex-col gap-1.5 md:gap-2">
                 {frontendSkills.map((skill) => (
-                  <ProgressBar 
+                  <div 
                     key={skill.name} 
-                    label={skill.name} 
-                    value={skill.level} 
-                    color={skill.color}
-                  />
+                    className="flex items-center justify-between p-2 md:p-2.5 rounded-lg border border-slate-700/30 bg-slate-800/40 hover:bg-cyan-500/10 hover:border-cyan-500/30 transition-all duration-300 group cursor-default"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${skill.color} opacity-80 group-hover:opacity-100 group-hover:shadow-[0_0_8px_currentColor] transition-all duration-300`}></div>
+                      <span className="text-[10px] md:text-xs font-sans font-medium tracking-wide text-slate-300 group-hover:text-cyan-300 transition-colors">
+                        {skill.name}
+                      </span>
+                    </div>
+                  </div>
                 ))}
               </div>
             </CardFrame>
@@ -124,14 +141,19 @@ export const About: React.FC = () => {
                 <Server className="text-purple-400 w-4 h-4 md:w-5 md:h-5" /> 
                 <span className="text-purple-400">Backend</span>
               </h3>
-              <div className="space-y-1">
+              <div className="flex flex-col gap-1.5 md:gap-2">
                 {backendSkills.map((skill) => (
-                  <ProgressBar 
+                  <div 
                     key={skill.name} 
-                    label={skill.name} 
-                    value={skill.level} 
-                    color={skill.color}
-                  />
+                    className="flex items-center justify-between p-2 md:p-2.5 rounded-lg border border-slate-700/30 bg-slate-800/40 hover:bg-purple-500/10 hover:border-purple-500/30 transition-all duration-300 group cursor-default"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${skill.color} opacity-80 group-hover:opacity-100 group-hover:shadow-[0_0_8px_currentColor] transition-all duration-300`}></div>
+                      <span className="text-[10px] md:text-xs font-sans font-medium tracking-wide text-slate-300 group-hover:text-purple-300 transition-colors">
+                        {skill.name}
+                      </span>
+                    </div>
+                  </div>
                 ))}
               </div>
             </CardFrame>
@@ -143,7 +165,7 @@ export const About: React.FC = () => {
               <Zap className="text-yellow-400 w-4 h-4 md:w-5 md:h-5" /> {t('about.tools')}
             </h3>
             <div className="flex flex-wrap gap-2">
-              {['React', 'Next.js', 'TypeScript', 'Node.js', 'Express', 'MongoDB', 'PostgreSQL', 'Tailwind', 'Git', 'Docker', 'Figma', 'VS Code'].map(tool => (
+              {['React', 'Next.js', 'TypeScript', 'Node.js', 'Express', 'MongoDB', 'PostgreSQL', 'Tailwind', 'Git', 'Docker', 'Figma', 'VS Code', 'Google stitch', 'Firebase', 'antigravity AI', 'Gamini AI'].map(tool => (
                 <span 
                   key={tool} 
                   className="px-2.5 md:px-3 py-1 md:py-1.5 bg-slate-800/80 border border-slate-700 text-slate-300 text-[10px] md:text-sm font-sans font-medium rounded-md hover:border-cyan-500/50 hover:text-cyan-400 transition-colors cursor-default"

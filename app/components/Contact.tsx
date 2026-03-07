@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { CardFrame, GameButton } from './GamerUI';
-import { Mail, MapPin, Send, Linkedin, Github, Phone, MessageCircle, CheckCircle, AlertCircle } from 'lucide-react';
+import { Mail, MapPin, Send, Linkedin, Github, Phone, MessageCircle, CheckCircle, AlertCircle, Instagram } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { addContactMessage } from '@/lib/firestore';
 
@@ -108,11 +108,11 @@ export const Contact: React.FC = () => {
             <CardFrame className="p-4 md:p-6">
               <h3 className="font-orbitron text-sm md:text-base font-bold mb-4 text-purple-400">{t('contact.social')}</h3>
               <div className="grid grid-cols-2 gap-2 md:gap-3">
-                <a href="#" className="flex items-center justify-center gap-2 p-2.5 md:p-3 bg-slate-800 hover:bg-[#0077b5]/20 text-slate-400 hover:text-[#0077b5] transition-all rounded-lg group">
-                  <Linkedin className="w-4 h-4 md:w-5 md:h-5" />
-                  <span className="text-xs font-orbitron">LinkedIn</span>
+                <a href="https://www.instagram.com/niaubin/" className="flex items-center justify-center gap-2 p-2.5 md:p-3 bg-slate-800 hover:bg-[#bf0b68]/20 text-slate-400 hover:text-[#bf0b68] transition-all rounded-lg group">
+                  <Instagram className="w-4 h-4 md:w-5 md:h-5" />
+                  <span className="text-xs font-orbitron">Instagram</span>
                 </a>
-                <a href="#" className="flex items-center justify-center gap-2 p-2.5 md:p-3 bg-slate-800 hover:bg-white/10 text-slate-400 hover:text-white transition-all rounded-lg group">
+                <a href="https://github.com/NiaUbin" className="flex items-center justify-center gap-2 p-2.5 md:p-3 bg-slate-800 hover:bg-[#0077b5]/20 text-slate-400 hover:text-[#0077b5] transition-all rounded-lg group">
                   <Github className="w-4 h-4 md:w-5 md:h-5" />
                   <span className="text-xs font-orbitron">GitHub</span>
                 </a>

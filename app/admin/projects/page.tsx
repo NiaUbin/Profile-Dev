@@ -41,12 +41,15 @@ export default function ProjectsAdmin() {
     description: "",
     category: "Full Stack",
     image: "",
+    images: [] as string[],
     tech: "",
     link: "#",
     github: "#",
     type: "fullstack",
     rarity: "Common",
   });
+
+  const [galleryInput, setGalleryInput] = useState("");
 
   const showToast = (type: "success" | "error", message: string) => {
     setToast({ type, message });
@@ -84,6 +87,7 @@ export default function ProjectsAdmin() {
       description: "",
       category: "Full Stack",
       image: "",
+      images: [] as string[],
       tech: "",
       link: "#",
       github: "#",
@@ -101,6 +105,7 @@ export default function ProjectsAdmin() {
       description: project.description,
       category: project.category,
       image: project.image,
+      images: project.images || [],
       tech: project.tech.join(", "),
       link: project.link,
       github: project.github || "#",
@@ -122,6 +127,7 @@ export default function ProjectsAdmin() {
         description: formData.description,
         category: formData.category,
         image: formData.image,
+        images: formData.images,
         tech: formData.tech
           .split(",")
           .map((t) => t.trim())
@@ -320,80 +326,67 @@ export default function ProjectsAdmin() {
 
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {editingProject ? "แก้ไขผลงาน" : "เพิ่มผลงานใหม่"}
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-10">
+              <h3 className="text-lg font-bold text-gray-800">
+                {editingProject ? "แก้ไขข้อมูลผลงาน" : "เพิ่มผลงานชิ้นใหม่"}
               </h3>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+              {/* Row 1: Title & Subtitle */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-700">
-                    ชื่อผลงาน *
-                  </label>
+                  <label className="text-sm font-semibold text-gray-700">ชื่อผลงาน <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     value={formData.title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     placeholder="เช่น E-Commerce Platform"
                     required
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-700">
-                    ชื่อรอง (Subtitle)
-                  </label>
+                  <label className="text-sm font-semibold text-gray-700">ชื่อรอง (Subtitle)</label>
                   <input
                     type="text"
                     value={formData.subtitle}
-                    onChange={(e) =>
-                      setFormData({ ...formData, subtitle: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
                     placeholder="เช่น Web Application"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all"
                   />
                 </div>
               </div>
 
+              {/* Row 2: Description */}
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">
-                  คำอธิบาย
-                </label>
+                <label className="text-sm font-semibold text-gray-700">คำอธิบายรายละเอียด</label>
                 <textarea
                   rows={3}
                   value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  placeholder="รายละเอียดของผลงาน..."
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="เขียนอธิบายเกี่ยวกับผลงานชิ้นนี้สั้นๆ..."
+                  className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all resize-y"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Row 3: Category & Type */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-700">
-                    หมวดหมู่
-                  </label>
+                  <label className="text-sm font-semibold text-gray-700">หมวดหมู่ป้ายกำกับ (Badge)</label>
                   <select
                     value={formData.category}
-                    onChange={(e) =>
-                      setFormData({ ...formData, category: e.target.value })
-                    }
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all cursor-pointer"
                   >
                     <option value="Full Stack">Full Stack</option>
                     <option value="Frontend">Frontend</option>
@@ -402,15 +395,11 @@ export default function ProjectsAdmin() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-700">
-                    ประเภท
-                  </label>
+                  <label className="text-sm font-semibold text-gray-700">ประเภทงาน (Filter)</label>
                   <select
                     value={formData.type}
-                    onChange={(e) =>
-                      setFormData({ ...formData, type: e.target.value })
-                    }
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                    className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all cursor-pointer"
                   >
                     <option value="fullstack">Full Stack</option>
                     <option value="frontend">Frontend</option>
@@ -419,83 +408,153 @@ export default function ProjectsAdmin() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">
-                  URL รูปภาพ
-                </label>
-                <input
-                  type="text"
-                  value={formData.image}
-                  onChange={(e) =>
-                    setFormData({ ...formData, image: e.target.value })
-                  }
-                  placeholder="https://example.com/image.jpg"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
+              {/* Row 4: URL Images */}
+              <div className="grid grid-cols-1 gap-5">
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-gray-700">URL รูปภาพหลัก (หน้าปก) <span className="text-red-500">*</span></label>
+                  
+                  {formData.image && (
+                    <div className="w-full max-w-sm aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200 shadow-sm relative mb-2">
+                       <img src={formData.image} alt="Cover Preview" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.src = "")} />
+                       <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-lg pointer-events-none"></div>
+                    </div>
+                  )}
+
+                  <input
+                    type="text"
+                    value={formData.image}
+                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                    placeholder="https://example.com/cover.jpg"
+                    required
+                    className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all"
+                  />
+                </div>
+                
+                
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-gray-700">แกลเลอรี่รูปภาพเพิ่มเติม</label>
+                  
+                  {/* Current Gallery Images */}
+                  {formData.images.length > 0 && (
+                    <div className="flex flex-col gap-2 mb-3">
+                      {formData.images.map((imgUrl, idx) => (
+                        <div key={idx} className="flex items-center gap-3 bg-white p-2 border border-gray-200 rounded-lg shadow-sm">
+                          <div className="w-12 h-10 flex-shrink-0 bg-gray-100 rounded overflow-hidden relative border border-gray-200">
+                            <img src={imgUrl} alt={`Gallery ${idx+1}`} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.src = "")} />
+                          </div>
+                          <div className="flex-1 truncate text-xs text-gray-500 font-mono">
+                            {imgUrl}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newImages = [...formData.images];
+                              newImages.splice(idx, 1);
+                              setFormData({ ...formData, images: newImages });
+                            }}
+                            className="p-1.5 text-red-500 hover:bg-red-50 hover:text-red-700 rounded-md transition-colors"
+                            title="ลบรูปภาพ"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Input for new Image */}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={galleryInput}
+                      onChange={(e) => setGalleryInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (galleryInput.trim() !== '') {
+                            setFormData({
+                              ...formData,
+                              images: [...formData.images, galleryInput.trim()]
+                            });
+                            setGalleryInput("");
+                          }
+                        }
+                      }}
+                      placeholder="ใส่ URL รูปภาพ... แล้วกด Enter เพื่อเพิ่ม"
+                      className="flex-1 border border-gray-200 bg-gray-50 rounded-lg px-4 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (galleryInput.trim() !== '') {
+                          setFormData({
+                            ...formData,
+                            images: [...formData.images, galleryInput.trim()]
+                          });
+                          setGalleryInput("");
+                        }
+                      }}
+                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg border border-gray-200 transition-colors"
+                    >
+                      เพิ่ม
+                    </button>
+                  </div>
+                </div>
               </div>
 
+              {/* Row 5: Technologies */}
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">
-                  เทคโนโลยี (คั่นด้วย ,)
-                </label>
+                <label className="text-sm font-semibold text-gray-700">เทคโนโลยีที่ใช้ (คั่นด้วยเครื่องหมาย ,จุลภาค)</label>
                 <input
                   type="text"
                   value={formData.tech}
-                  onChange={(e) =>
-                    setFormData({ ...formData, tech: e.target.value })
-                  }
-                  placeholder="React, Node.js, MongoDB"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  onChange={(e) => setFormData({ ...formData, tech: e.target.value })}
+                  placeholder="React, Next.js, Node.js, MongoDB"
+                  className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Row 6: Links */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-700">
-                    ลิงก์เว็บไซต์
-                  </label>
+                  <label className="text-sm font-semibold text-gray-700">ลิงก์เว็บไซต์จริง (Live Site)</label>
                   <input
                     type="text"
                     value={formData.link}
-                    onChange={(e) =>
-                      setFormData({ ...formData, link: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, link: e.target.value })}
                     placeholder="https://..."
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-700">
-                    ลิงก์ GitHub
-                  </label>
+                  <label className="text-sm font-semibold text-gray-700">ลิงก์ GitHub (Source Code)</label>
                   <input
                     type="text"
                     value={formData.github}
-                    onChange={(e) =>
-                      setFormData({ ...formData, github: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, github: e.target.value })}
                     placeholder="https://github.com/..."
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all"
                   />
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4">
+              {/* Buttons */}
+              <div className="flex gap-3 pt-6 mt-2 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
                 >
                   ยกเลิก
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2 text-sm font-medium transition-colors disabled:opacity-50"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-semibold transition-colors disabled:opacity-50 shadow-sm"
                 >
-                  <Save size={16} />
-                  {saving ? "กำลังบันทึก..." : "บันทึก"}
+                  <Save size={18} />
+                  {saving ? "กำลังบันทึกข้อมูล..." : "บันทึกผลงาน"}
                 </button>
               </div>
             </form>

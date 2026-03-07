@@ -10,8 +10,37 @@ import {
   query,
   orderBy,
   Timestamp,
+  increment,
 } from "firebase/firestore";
 import { db } from "./firebase";
+
+// ==================== STATS ====================
+
+export async function getVisits(): Promise<number> {
+  try {
+    const docRef = doc(db, "visits", "total");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data().count || 0;
+    }
+    return 0;
+  } catch (error) {
+    console.error("Error getting visits:", error);
+    return 0;
+  }
+}
+
+export async function incrementVisits(): Promise<void> {
+  try {
+    const docRef = doc(db, "visits", "total");
+    await setDoc(docRef, { 
+      count: increment(1),
+      lastUpdated: Timestamp.now() 
+    }, { merge: true });
+  } catch (error) {
+    console.error("Error incrementing visits:", error);
+  }
+}
 
 // ==================== PROFILE ====================
 
@@ -121,6 +150,7 @@ export interface ProjectData {
   description: string;
   category: string;
   image: string;
+  images?: string[];
   tech: string[];
   link: string;
   github?: string;

@@ -28,7 +28,7 @@ export const Hero: React.FC = () => {
         </div>
 
         {/* Main Title */}
-        <h1 className="font-orbitron text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-black mb-4 md:mb-6 tracking-tight leading-tight">
+        <h1 className="font-orbitron text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-black mb-4 md:mb-5 tracking-tight leading-tight">
           <span className="block text-slate-100 mb-1 md:mb-2">{t('hero.greeting')}</span>
           <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 glitch pb-2">
             Nattawat
@@ -36,35 +36,35 @@ export const Hero: React.FC = () => {
         </h1>
 
         {/* Role Badge */}
-        <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-8 md:mb-10">
+        <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-6 md:mb-8 mt-2 md:mt-4">
           <div className="relative group cursor-default">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
-            <span className="relative px-4 py-1.5 md:py-2 bg-slate-900 border border-slate-800 rounded-full text-cyan-400 text-xs md:text-sm font-orbitron tracking-widest flex items-center justify-center">
+            <span className="relative px-4 py-1.5 md:py-2 bg-slate-900 border border-slate-800 rounded-full text-cyan-400 text-xs font-orbitron tracking-widest flex items-center justify-center">
               Frontend Dev
             </span>
           </div>
           <div className="relative group cursor-default">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
-            <span className="relative px-4 py-1.5 md:py-2 bg-slate-900 border border-slate-800 rounded-full text-purple-400 text-xs md:text-sm font-orbitron tracking-widest flex items-center justify-center">
+            <span className="relative px-4 py-1.5 md:py-2 bg-slate-900 border border-slate-800 rounded-full text-purple-400 text-xs font-orbitron tracking-widest flex items-center justify-center">
               Backend Dev
             </span>
           </div>
           <div className="relative group cursor-default">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
-            <span className="relative px-4 py-1.5 md:py-2 bg-slate-900 border border-slate-800 rounded-full text-emerald-400 text-xs md:text-sm font-orbitron tracking-widest flex items-center justify-center">
+            <span className="relative px-4 py-1.5 md:py-2 bg-slate-900 border border-slate-800 rounded-full text-emerald-400 text-xs font-orbitron tracking-widest flex items-center justify-center">
               Full Stack
             </span>
           </div>
           <div className="relative group cursor-default">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
-            <span className="relative px-4 py-1.5 md:py-2 bg-slate-900 border border-slate-800 rounded-full text-emerald-400 text-xs md:text-sm font-orbitron tracking-widest flex items-center justify-center">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-500 to-amber-500 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+            <span className="relative px-4 py-1.5 md:py-2 bg-slate-900 border border-slate-800 rounded-full text-amber-400 text-xs font-orbitron tracking-widest flex items-center justify-center">
               Prompt Engineer
             </span>
           </div>
         </div>
 
         {/* Description */}
-        <p className="max-w-xl md:max-w-2xl mx-auto text-slate-400 text-sm md:text-lg lg:text-xl font-light mb-8 md:mb-10 leading-relaxed px-2">
+        <p className="max-w-xl md:max-w-xl lg:max-w-2xl mx-auto text-slate-400 text-sm md:text-base lg:text-lg font-light mb-6 md:mb-8 leading-relaxed px-2">
           {t('hero.description')} <span className="text-cyan-400 font-medium">{t('hero.website')}</span> {t('hero.and')} <span className="text-purple-400 font-medium">{t('hero.application')}</span> {t('hero.descriptionEnd')}
         </p>
 
