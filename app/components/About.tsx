@@ -38,7 +38,7 @@ export const About: React.FC = () => {
             {/* Profile Image */}
             <div className="relative aspect-square w-full max-w-[200px] md:max-w-none mx-auto mb-6 bg-slate-800 rounded-lg overflow-hidden group">
               <Image 
-                src="/S__50872323.jpg" // เอาไว้แก้รูปภาพโปรไฟล์
+                src="/S__50872323.jpg"
                 alt="Nattawat - Full Stack Developer" 
                 fill
                 sizes="(max-width: 768px) 200px, 100%"
@@ -51,12 +51,6 @@ export const About: React.FC = () => {
                   <h2 className="font-orbitron text-xl md:text-2xl font-black text-white leading-none">Nattawat</h2>
                   <p className="text-cyan-400 text-[10px] md:text-xs font-orbitron tracking-widest mt-1">Full Stack Developer</p>
                 </div>
-                {/* <div className="flex gap-0.5">
-                  {[1,2,3,4].map(i => (
-                    <Star key={i} className="w-2.5 h-2.5 md:w-3 md:h-3 text-yellow-500 fill-current" />
-                  ))}
-                  <Star className="w-2.5 h-2.5 md:w-3 md:h-3 text-slate-600 fill-current" />
-                </div> */}
               </div>
             </div>
 
@@ -152,7 +146,7 @@ export const About: React.FC = () => {
               {['React', 'Next.js', 'TypeScript', 'Node.js', 'Express', 'MongoDB', 'PostgreSQL', 'Tailwind', 'Git', 'Docker', 'Figma', 'VS Code'].map(tool => (
                 <span 
                   key={tool} 
-                  className="px-2.5 md:px-3 py-1 md:py-1.5 bg-slate-800/80 border border-slate-700 text-slate-400 text-[10px] md:text-xs font-orbitron rounded-md hover:border-cyan-500/50 hover:text-cyan-400 transition-colors cursor-default"
+                  className="px-2.5 md:px-3 py-1 md:py-1.5 bg-slate-800/80 border border-slate-700 text-slate-300 text-[10px] md:text-sm font-sans font-medium rounded-md hover:border-cyan-500/50 hover:text-cyan-400 transition-colors cursor-default"
                 >
                   {tool}
                 </span>

@@ -47,7 +47,7 @@ function HomeContent() {
             {/* Brand */}
             <div className="text-center md:text-left flex flex-col justify-center">
               <h3 className="font-orbitron text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 mb-3 tracking-widest glitch-hover cursor-default">
-                SORA
+                Nattawat
               </h3>
               <p className="text-slate-500 text-xs md:text-sm max-w-xs mx-auto md:mx-0">
                 {t('footer.description')}
@@ -92,7 +92,7 @@ function HomeContent() {
           {/* Bottom Bar */}
           <div className="py-4 md:py-6 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-2 text-center">
             <p className="text-slate-600 font-orbitron text-[10px] md:text-xs tracking-wider">
-              © 2024 SORA_DEV // ALL RIGHTS RESERVED
+              © 2026 NATTAWAT_DEV // ALL RIGHTS RESERVED
             </p>
             <p className="flex items-center gap-1 text-slate-600 text-[10px] md:text-xs">
               {t('footer.madeWith')} <Heart className="w-3 h-3 text-red-500 fill-current" /> {t('footer.inBangkok')}

@@ -55,6 +55,12 @@ export const Hero: React.FC = () => {
               Full Stack
             </span>
           </div>
+          <div className="relative group cursor-default">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+            <span className="relative px-4 py-1.5 md:py-2 bg-slate-900 border border-slate-800 rounded-full text-emerald-400 text-xs md:text-sm font-orbitron tracking-widest flex items-center justify-center">
+              Prompt Engineer
+            </span>
+          </div>
         </div>
 
         {/* Description */}
@@ -120,11 +126,6 @@ export const Hero: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Scroll Indicator */}
-      {/* <div className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
-        <ChevronDown className="w-5 h-5 md:w-6 md:h-6 text-slate-600" />
-      </div> */}
     </div>
   );
 };

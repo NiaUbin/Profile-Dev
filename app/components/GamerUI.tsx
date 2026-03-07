@@ -7,9 +7,10 @@ interface ButtonProps {
   onClick?: () => void;
   variant?: 'primary' | 'secondary' | 'danger';
   className?: string;
+  disabled?: boolean;
 }
 
-export const GameButton: React.FC<ButtonProps> = ({ children, onClick, variant = 'primary', className = '' }) => {
+export const GameButton: React.FC<ButtonProps> = ({ children, onClick, variant = 'primary', className = '', disabled = false }) => {
   const baseStyles = "relative px-6 py-2 font-orbitron text-sm uppercase tracking-widest transition-all duration-300 overflow-hidden group";
   
   const variants = {
@@ -19,7 +20,7 @@ export const GameButton: React.FC<ButtonProps> = ({ children, onClick, variant =
   };
 
   return (
-    <button onClick={onClick} className={`${baseStyles} ${variants[variant]} ${className}`}>
+    <button onClick={onClick} disabled={disabled} className={`${baseStyles} ${variants[variant]} ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
       <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
       <span className="relative z-10 flex items-center justify-center gap-2">{children}</span>
       <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-current transition-all group-hover:w-4 group-hover:h-4"></div>
@@ -41,7 +42,7 @@ export const CardFrame: React.FC<{ children: React.ReactNode; className?: string
 export const ProgressBar: React.FC<{ label: string; value: number; color?: string }> = ({ label, value, color = 'bg-cyan-500' }) => {
   return (
     <div className="mb-4">
-      <div className="flex justify-between mb-1 font-orbitron text-xs uppercase tracking-tighter">
+      <div className="flex justify-between mb-1 font-sans text-xs uppercase tracking-wider font-semibold text-slate-300">
         <span>{label}</span>
         <span>{value}%</span>
       </div>
