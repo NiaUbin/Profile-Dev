@@ -204,7 +204,7 @@ export const About: React.FC = () => {
             <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-5 group"
               style={{ border: '1px solid rgba(34,211,238,0.15)' }}>
               <Image
-                src="/S__50872323.jpg"
+                src="/profile.webp"
                 alt="Nattawat - Full Stack Developer"
                 fill sizes="300px"
                 className="object-cover opacity-85 group-hover:opacity-100 scale-100 group-hover:scale-105 transition-all duration-700"
@@ -239,7 +239,7 @@ export const About: React.FC = () => {
                   </div>
                   <div className="min-w-0">
                     <p className="font-orbitron text-[9px] tracking-[0.2em] uppercase text-slate-500">{t(labelKey)}</p>
-                    <p className="font-orbitron text-xs text-slate-200 truncate mt-0.5">{t(valueKey)}</p>
+                    <p className="font-orbitron text-[11px] leading-tight text-slate-200 mt-0.5">{t(valueKey)}</p>
                   </div>
                 </div>
               ))}

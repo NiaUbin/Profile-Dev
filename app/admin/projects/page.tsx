@@ -253,7 +253,7 @@ export default function ProjectsAdmin() {
                   {/* Image */}
                   <div className="relative h-44 overflow-hidden" style={{ background: 'rgba(15,23,42,0.9)' }}>
                     {project.image ? (
-                      <img src={project.image} alt={project.title}
+                      <img src={project.image} alt={project.title} loading="lazy"
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center gap-2">
@@ -412,7 +412,7 @@ export default function ProjectsAdmin() {
                   {formData.image && (
                     <div className="w-full aspect-video rounded-xl overflow-hidden"
                       style={{ border: '1px solid rgba(100,116,139,0.2)' }}>
-                      <img src={formData.image} alt="preview" className="w-full h-full object-cover" />
+                      <img src={formData.image} alt="preview" loading="lazy" className="w-full h-full object-cover" />
                     </div>
                   )}
                 </div>
@@ -424,7 +424,7 @@ export default function ProjectsAdmin() {
                     <div key={i} className="flex items-center gap-3 p-3 rounded-xl"
                       style={{ background: 'rgba(30,41,59,0.5)', border: '1px solid rgba(100,116,139,0.12)' }}>
                       <div className="w-12 h-9 rounded-lg overflow-hidden shrink-0">
-                        <img src={url} alt="" className="w-full h-full object-cover" />
+                        <img src={url} alt={`Gallery image ${i + 1}`} loading="lazy" className="w-full h-full object-cover" />
                       </div>
                       <p className="flex-1 text-xs text-slate-600 font-mono truncate">{url}</p>
                       <button type="button" onClick={() => setFormData(f => ({ ...f, images: f.images.filter((_, j) => j !== i) }))}

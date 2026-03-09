@@ -180,6 +180,7 @@ function ProjectDetailPageContent() {
                 <>
                   <img
                     src={curImage}
+                    loading="lazy"
                     alt={`${project.title} preview ${imgIdx + 1}`}
                     className="w-full h-auto max-h-[65vh] object-contain transition-transform duration-700 group-hover:scale-[1.02]"
                   />
@@ -228,7 +229,7 @@ function ProjectDetailPageContent() {
                         boxShadow: active ? `0 0 12px ${type.color}40` : 'none',
                       }}
                     >
-                      <img src={url} alt={`thumb ${i + 1}`} className="w-full h-full object-cover" />
+                      <img src={url} alt={`thumb ${i + 1}`} loading="lazy" className="w-full h-full object-cover" />
                       {isLast && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center"
                           style={{ background: 'rgba(2,6,23,0.75)' }}>
@@ -441,6 +442,7 @@ function ProjectDetailPageContent() {
           <div className="relative flex-1 flex items-center justify-center w-full min-h-0" onClick={e => e.stopPropagation()}>
             <img
               src={curImage}
+              loading="lazy"
               alt={project.title}
               className="max-w-full max-h-full object-contain rounded-2xl"
               style={{ boxShadow: `0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px ${type.color}20` }}

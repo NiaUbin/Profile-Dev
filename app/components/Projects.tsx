@@ -9,6 +9,47 @@ import { getProjects, ProjectData } from '@/lib/firestore';
 
 type FilterType = 'all' | 'frontend' | 'backend' | 'fullstack';
 
+/* ── Floating particle canvas ── */
+const ParticleCanvas: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    let animId: number;
+    const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const particles = Array.from({ length: 30 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.5 + 0.5,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: -Math.random() * 0.4 - 0.1,
+      alpha: Math.random() * 0.4 + 0.1,
+      hue: Math.random() > 0.5 ? 190 : 270,
+    }));
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.y < 0) { p.y = canvas.height; p.x = Math.random() * canvas.width; }
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${p.hue}, 90%, 65%, ${p.alpha})`;
+        ctx.fill();
+      });
+      animId = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); };
+  }, []);
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />;
+};
+
 /* ── Type config ── */
 const TYPE_CONFIG: Record<string, { color: string; border: string; bg: string; label: string }> = {
   frontend: { color: '#22d3ee', border: 'rgba(34,211,238,0.35)',  bg: 'rgba(34,211,238,0.08)',  label: 'Frontend'  },
@@ -245,6 +286,7 @@ export const Projects: React.FC = () => {
 
   return (
     <div className="section-container relative overflow-hidden">
+      <ParticleCanvas />
       {/* Ambient */}
       <div className="absolute top-0 right-0 w-96 h-96 pointer-events-none"
         style={{ background: 'radial-gradient(circle, rgba(34,211,238,0.04) 0%, transparent 70%)', filter: 'blur(60px)' }} />

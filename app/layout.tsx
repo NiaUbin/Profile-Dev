@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Nattawat_DEV | Full Stack Developer Portfolio",
-  description: "พอร์ตโฟลิโอของ Nattawat - Full Stack Developer ผู้เชี่ยวชาญ React, Next.js, Node.js และการสร้างระบบ Full Stack ที่สมบูรณ์",
-  keywords: ["Full Stack Developer", "React", "Next.js", "Node.js", "TypeScript", "Portfolio", "Thailand"],
+  title: "Nattawat | Full Stack Developer Portfolio",
+  description: "Nattawat Full Stack Developer portfolio — React, Next.js, Node.js, TypeScript developer based in Thailand. พอร์ตโฟลิโอของ Nattawat ผู้เชี่ยวชาญการสร้างระบบ Full Stack ที่สมบูรณ์",
+  keywords: ["Full Stack Developer", "React", "Next.js", "Node.js", "TypeScript", "Portfolio", "Thailand", "Developer", "Web Developer"],
   authors: [{ name: "Nattawat" }],
   openGraph: {
-    title: "Nattawat_DEV | Full Stack Developer Portfolio",
-    description: "พอร์ตโฟลิโอของ Nattawat - Full Stack Developer ผู้เชี่ยวชาญ React, Next.js, Node.js",
+    title: "Nattawat | Full Stack Developer Portfolio",
+    description: "Nattawat Full Stack Developer portfolio — React, Next.js, Node.js, TypeScript developer. พอร์ตโฟลิโอของ Nattawat",
     type: "website",
     locale: "th_TH",
   },

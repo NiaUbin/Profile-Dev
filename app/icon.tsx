@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const size = { width: 32, height: 32 };
-export const contentType = 'image/png';
+export const dynamic = 'force-static';
 
 export default function Icon() {
   return new ImageResponse(
@@ -13,10 +13,10 @@ export default function Icon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#0f172a', /* Dark background like original styling */
+          background: '#0f172a',
           color: '#ffffff',
           borderRadius: '8px',
-          border: '2px solid #3b82f6', /* Blue ring effect */
+          border: '2px solid #3b82f6',
         }}
       >
         <div
