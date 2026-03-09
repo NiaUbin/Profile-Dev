@@ -36,6 +36,20 @@ function AdminLoginGate({ children }: { children: React.ReactNode }) {
       e.preventDefault(); setError(""); setLoginLoading(true);
       try {
         await signIn(email, password);
+        const Swal = (await import('sweetalert2')).default;
+        Swal.fire({
+          title: 'เข้าสู่ระบบสำเร็จ',
+          text: 'ยินดีต้อนรับสู่ระบบจัดการพอร์ตโฟลิโอ',
+          icon: 'success',
+          background: '#0f172a',
+          color: '#e2e8f0',
+          timer: 1500,
+          showConfirmButton: false,
+          customClass: {
+            popup: 'border border-cyan-500/30 shadow-[0_0_40px_rgba(34,211,238,0.2)] rounded-3xl',
+            title: 'font-orbitron tracking-wider text-cyan-400',
+          }
+        });
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "";
         if (msg.includes("invalid-credential") || msg.includes("wrong-password") || msg.includes("user-not-found"))
@@ -43,6 +57,22 @@ function AdminLoginGate({ children }: { children: React.ReactNode }) {
         else if (msg.includes("too-many-requests"))
           setError("ลองมากเกินไป กรุณารอสักครู่");
         else setError("เข้าสู่ระบบล้มเหลว: " + msg);
+        
+        const Swal = (await import('sweetalert2')).default;
+        Swal.fire({
+          title: 'เข้าสู่ระบบล้มเหลว',
+          text: error || 'กรุณาตรวจสอบข้อมูลอีกครั้ง',
+          icon: 'error',
+          background: '#0f172a',
+          color: '#e2e8f0',
+          confirmButtonText: 'ตกลง',
+          buttonsStyling: false,
+          customClass: {
+            popup: 'border border-rose-500/30 shadow-[0_0_40px_rgba(244,63,94,0.15)] rounded-3xl',
+            title: 'font-orbitron tracking-wider text-rose-400',
+            confirmButton: 'mt-4 px-6 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-xl font-orbitron tracking-wider transition-all'
+          }
+        });
       } finally { setLoginLoading(false); }
     };
 
@@ -164,7 +194,43 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     { name: 'ข้อความติดต่อ', path: '/admin/messages', icon: Mail,            color: '#10b981' },
   ];
 
-  const handleSignOut = async () => { await signOut(); router.push('/admin'); };
+  const handleSignOut = async () => { 
+    const Swal = (await import('sweetalert2')).default;
+    const result = await Swal.fire({
+      title: 'ต้องการออกจากระบบ?',
+      text: "คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?",
+      icon: 'question',
+      showCancelButton: true,
+      background: '#0f172a',
+      color: '#e2e8f0',
+      confirmButtonText: 'ออกจากระบบ',
+      cancelButtonText: 'ยกเลิก',
+      buttonsStyling: false,
+      customClass: {
+        popup: 'border border-cyan-500/30 shadow-[0_0_40px_rgba(34,211,238,0.15)] rounded-3xl',
+        title: 'font-orbitron tracking-wider text-white',
+        confirmButton: 'mt-4 px-6 py-2.5 bg-rose-500 hover:bg-rose-600 text-white shadow-[0_0_20px_rgba(244,63,94,0.4)] rounded-xl font-orbitron tracking-wider transition-all mr-3',
+        cancelButton: 'mt-4 px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl font-orbitron tracking-wider transition-all'
+      }
+    });
+
+    if (result.isConfirmed) {
+      await signOut(); 
+      router.push('/admin'); 
+      Swal.fire({
+        title: 'ออกจากระบบแล้ว',
+        icon: 'success',
+        background: '#0f172a',
+        color: '#e2e8f0',
+        timer: 1500,
+        showConfirmButton: false,
+        customClass: {
+          popup: 'border border-cyan-500/30 shadow-[0_0_40px_rgba(34,211,238,0.2)] rounded-3xl',
+          title: 'font-orbitron tracking-wider text-cyan-400',
+        }
+      });
+    }
+  };
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">

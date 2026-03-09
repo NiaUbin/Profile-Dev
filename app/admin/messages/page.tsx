@@ -35,13 +35,58 @@ export default function MessagesAdmin() {
   useEffect(() => { fetchMessages(); }, []);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('ต้องการลบข้อความนี้หรือไม่?')) return;
+    const Swal = (await import('sweetalert2')).default;
+    const result = await Swal.fire({
+      title: 'ลบข้อความ?',
+      text: "คุณแน่ใจหรือไม่ว่าต้องการลบข้อความนี้ ข้อมูลจะไม่สามารถกู้คืนได้",
+      icon: 'warning',
+      showCancelButton: true,
+      background: '#0f172a',
+      color: '#e2e8f0',
+      confirmButtonText: 'ลบข้อมูล',
+      cancelButtonText: 'ยกเลิก',
+      buttonsStyling: false,
+      customClass: {
+        popup: 'border border-rose-500/30 shadow-[0_0_40px_rgba(244,63,94,0.15)] rounded-3xl',
+        title: 'font-orbitron tracking-wider text-white',
+        confirmButton: 'mt-4 px-6 py-2.5 bg-rose-500 hover:bg-rose-600 text-white shadow-[0_0_20px_rgba(244,63,94,0.4)] rounded-xl font-orbitron tracking-wider transition-all mr-3',
+        cancelButton: 'mt-4 px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl font-orbitron tracking-wider transition-all'
+      }
+    });
+
+    if (!result.isConfirmed) return;
     setDeleting(id);
     try {
       await deleteDoc(doc(db, 'messages', id));
+      Swal.fire({
+        title: 'ลบสำเร็จ!',
+        icon: 'success',
+        background: '#0f172a',
+        color: '#e2e8f0',
+        timer: 1500,
+        showConfirmButton: false,
+        customClass: {
+          popup: 'border border-emerald-500/30 shadow-[0_0_40px_rgba(16,185,129,0.2)] rounded-3xl',
+          title: 'font-orbitron tracking-wider text-emerald-400',
+        }
+      });
       await fetchMessages();
       if (selectedMessage?.id === id) setSelected(null);
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error(e); 
+      Swal.fire({
+        title: 'เกิดข้อผิดพลาดในการลบ',
+        icon: 'error',
+        background: '#0f172a',
+        color: '#e2e8f0',
+        confirmButtonText: 'ตกลง',
+        buttonsStyling: false,
+        customClass: {
+          popup: 'border border-rose-500/30 rounded-3xl',
+          confirmButton: 'mt-4 px-6 py-2.5 bg-rose-500/10 text-rose-400 border border-rose-500/30 rounded-xl'
+        }
+      });
+    }
     finally { setDeleting(null); }
   };
 
