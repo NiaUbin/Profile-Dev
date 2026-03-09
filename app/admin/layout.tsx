@@ -2,114 +2,144 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Briefcase, LogOut, Menu, Shield, Mail } from "lucide-react";
+import {
+  LayoutDashboard, Briefcase, LogOut, Menu, Shield, Mail, X, Home, ChevronRight
+} from "lucide-react";
 import { useState } from "react";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
 
+/* ═══════════════════════════════════════
+   LOGIN PAGE
+═══════════════════════════════════════ */
 function AdminLoginGate({ children }: { children: React.ReactNode }) {
   const { user, loading, signIn, signOut } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [email, setEmail]           = useState("");
+  const [password, setPassword]     = useState("");
+  const [error, setError]           = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+  const [focusField, setFocusField] = useState<string | null>(null);
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-gray-500 text-sm">กำลังตรวจสอบสิทธิ์...</p>
+  if (loading) return (
+    <div className="flex h-screen items-center justify-center bg-slate-950">
+      <div className="flex flex-col items-center gap-4">
+        <div className="relative w-12 h-12">
+          <div className="absolute inset-0 rounded-full border-2 border-cyan-500/20" />
+          <div className="absolute inset-0 rounded-full border-t-2 border-cyan-400 animate-spin" />
         </div>
+        <p className="font-orbitron text-[10px] tracking-[0.4em] text-cyan-500 uppercase animate-pulse">กำลังตรวจสอบ...</p>
       </div>
-    );
-  }
+    </div>
+  );
 
   if (!user) {
     const handleLogin = async (e: React.FormEvent) => {
-      e.preventDefault();
-      setError("");
-      setLoginLoading(true);
+      e.preventDefault(); setError(""); setLoginLoading(true);
       try {
         await signIn(email, password);
       } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : "เข้าสู่ระบบล้มเหลว";
-        if (errorMessage.includes("invalid-credential") || errorMessage.includes("wrong-password") || errorMessage.includes("user-not-found")) {
+        const msg = err instanceof Error ? err.message : "";
+        if (msg.includes("invalid-credential") || msg.includes("wrong-password") || msg.includes("user-not-found"))
           setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
-        } else if (errorMessage.includes("too-many-requests")) {
+        else if (msg.includes("too-many-requests"))
           setError("ลองมากเกินไป กรุณารอสักครู่");
-        } else {
-          setError("เข้าสู่ระบบล้มเหลว: " + errorMessage);
-        }
-      } finally {
-        setLoginLoading(false);
-      }
+        else setError("เข้าสู่ระบบล้มเหลว: " + msg);
+      } finally { setLoginLoading(false); }
     };
 
     return (
-      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4">
-        <div className="w-full max-w-md">
+      <div className="flex h-screen items-center justify-center bg-slate-950 relative overflow-hidden px-4">
+        {/* Ambient */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle,rgba(34,211,238,0.06) 0%,transparent 65%)', filter: 'blur(60px)' }} />
+        <div className="absolute top-1/4 right-1/4 w-64 h-64 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle,rgba(168,85,247,0.05) 0%,transparent 65%)', filter: 'blur(60px)' }} />
+
+        <div className="w-full max-w-md relative z-10">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl shadow-lg shadow-blue-500/25 mb-4">
-              <Shield className="w-8 h-8 text-white" />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 relative"
+              style={{ background: 'linear-gradient(135deg,#22d3ee,#3b82f6)', boxShadow: '0 0 32px rgba(34,211,238,0.4)' }}>
+              <Shield className="w-8 h-8 text-slate-950" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
-            <p className="text-gray-500 text-sm mt-1">เข้าสู่ระบบเพื่อจัดการพอร์ตโฟลิโอ</p>
+            <h1 className="font-orbitron font-black text-2xl text-white tracking-wider">ADMIN PANEL</h1>
+            <p className="text-slate-500 text-xs mt-2 font-orbitron tracking-widest">เข้าสู่ระบบจัดการพอร์ตโฟลิโอ</p>
           </div>
 
-          {/* Login Form */}
-          <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-8">
+          {/* Card */}
+          <div className="p-8 rounded-2xl"
+            style={{ background: 'rgba(15,23,42,0.9)', border: '1px solid rgba(34,211,238,0.15)', backdropFilter: 'blur(20px)', boxShadow: '0 0 60px rgba(34,211,238,0.06)' }}>
+
+            {/* Top border accent */}
+            <div className="absolute top-0 inset-x-0 h-[1px] rounded-t-2xl"
+              style={{ background: 'linear-gradient(90deg,transparent,#22d3ee,transparent)' }} />
+
             <form onSubmit={handleLogin} className="space-y-5">
               {error && (
-                <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-100 flex items-center gap-2">
-                  <span className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0"></span>
+                <div className="flex items-center gap-2.5 p-3.5 rounded-xl text-sm"
+                  style={{ background: 'rgba(244,63,94,0.08)', border: '1px solid rgba(244,63,94,0.25)', color: '#fb7185' }}>
+                  <span className="w-2 h-2 rounded-full bg-rose-400 shrink-0" />
                   {error}
                 </div>
               )}
-              
+
+              {/* Email */}
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">อีเมล</label>
+                <label className="font-orbitron text-[9px] tracking-[0.3em] uppercase"
+                  style={{ color: focusField === 'email' ? '#22d3ee' : '#64748b' }}>
+                  อีเมล
+                </label>
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@example.com"
-                  required
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all"
+                  type="email" value={email} onChange={e => setEmail(e.target.value)}
+                  placeholder="admin@example.com" required
+                  onFocus={() => setFocusField('email')} onBlur={() => setFocusField(null)}
+                  className="w-full px-4 py-3 text-sm text-slate-200 rounded-xl focus:outline-none transition-all duration-300 placeholder:text-slate-700"
+                  style={{
+                    background: focusField === 'email' ? 'rgba(34,211,238,0.04)' : 'rgba(30,41,59,0.6)',
+                    border: `1px solid ${focusField === 'email' ? 'rgba(34,211,238,0.5)' : 'rgba(100,116,139,0.2)'}`,
+                    boxShadow: focusField === 'email' ? '0 0 16px rgba(34,211,238,0.08)' : 'none',
+                  }}
                 />
               </div>
 
+              {/* Password */}
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">รหัสผ่าน</label>
+                <label className="font-orbitron text-[9px] tracking-[0.3em] uppercase"
+                  style={{ color: focusField === 'pw' ? '#22d3ee' : '#64748b' }}>
+                  รหัสผ่าน
+                </label>
                 <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all"
+                  type="password" value={password} onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••" required
+                  onFocus={() => setFocusField('pw')} onBlur={() => setFocusField(null)}
+                  className="w-full px-4 py-3 text-sm text-slate-200 rounded-xl focus:outline-none transition-all duration-300 placeholder:text-slate-700"
+                  style={{
+                    background: focusField === 'pw' ? 'rgba(34,211,238,0.04)' : 'rgba(30,41,59,0.6)',
+                    border: `1px solid ${focusField === 'pw' ? 'rgba(34,211,238,0.5)' : 'rgba(100,116,139,0.2)'}`,
+                    boxShadow: focusField === 'pw' ? '0 0 16px rgba(34,211,238,0.08)' : 'none',
+                  }}
                 />
               </div>
 
               <button
-                type="submit"
-                disabled={loginLoading}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 rounded-xl font-medium text-sm transition-all disabled:opacity-50 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40"
+                type="submit" disabled={loginLoading}
+                className="group relative w-full py-3.5 rounded-xl font-orbitron text-xs font-bold tracking-widest overflow-hidden transition-all duration-300 disabled:opacity-60 focus:outline-none"
+                style={{ background: 'linear-gradient(135deg,#22d3ee,#3b82f6)', color: '#020617', boxShadow: '0 0 24px rgba(34,211,238,0.35)' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow='0 0 40px rgba(34,211,238,0.55)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow='0 0 24px rgba(34,211,238,0.35)'; }}
               >
-                {loginLoading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                    กำลังเข้าสู่ระบบ...
-                  </span>
-                ) : (
-                  "เข้าสู่ระบบ"
-                )}
+                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"
+                  style={{ background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent)' }} />
+                <span className="relative flex items-center justify-center gap-2">
+                  {loginLoading ? (
+                    <><span className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />กำลังเข้าสู่ระบบ...</>
+                  ) : 'เข้าสู่ระบบ'}
+                </span>
               </button>
             </form>
           </div>
 
-          <p className="text-center text-xs text-gray-400 mt-6">
-            Portfolio Admin System v1.0
+          <p className="text-center font-orbitron text-[9px] tracking-widest text-slate-700 mt-6">
+            PORTFOLIO ADMIN SYSTEM v1.0
           </p>
         </div>
       </div>
@@ -119,105 +149,149 @@ function AdminLoginGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+/* ═══════════════════════════════════════
+   LAYOUT INNER
+═══════════════════════════════════════ */
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
+  const router   = useRouter();
   const { user, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const menuItems = [
-    { name: "แดชบอร์ด", path: "/admin", icon: LayoutDashboard },
-    { name: "จัดการผลงาน", path: "/admin/projects", icon: Briefcase },
-    { name: "ข้อความติดต่อ", path: "/admin/messages", icon: Mail },
+    { name: 'แดชบอร์ด',    path: '/admin',          icon: LayoutDashboard, color: '#22d3ee' },
+    { name: 'จัดการผลงาน', path: '/admin/projects',  icon: Briefcase,       color: '#a855f7' },
+    { name: 'ข้อความติดต่อ', path: '/admin/messages', icon: Mail,            color: '#10b981' },
   ];
 
-  const handleSignOut = async () => {
-    await signOut();
-    router.push("/admin");
-  };
+  const handleSignOut = async () => { await signOut(); router.push('/admin'); };
+
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full">
+      {/* Brand */}
+      <div className="px-6 py-5 flex items-center justify-between"
+        style={{ borderBottom: '1px solid rgba(100,116,139,0.12)' }}>
+        <div>
+          <p className="font-orbitron font-black text-base tracking-wider"
+            style={{ background: 'linear-gradient(135deg,#22d3ee,#a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            ADMIN
+          </p>
+          <p className="font-orbitron text-[9px] tracking-[0.3em] text-slate-600 mt-0.5">PANEL v1.0</p>
+        </div>
+        <button className="md:hidden w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+          style={{ color: '#64748b' }} onClick={() => setSidebarOpen(false)}>
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        {menuItems.map(({ name, path, icon: Icon, color }) => {
+          const active = pathname === path;
+          return (
+            <Link key={path} href={path}
+              onClick={() => setSidebarOpen(false)}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 group"
+              style={{
+                background: active ? `${color}12` : 'transparent',
+                border: `1px solid ${active ? color + '30' : 'transparent'}`,
+                color: active ? color : '#64748b',
+              }}
+              onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLElement).style.background='rgba(100,116,139,0.08)'; (e.currentTarget as HTMLElement).style.color='#94a3b8'; } }}
+              onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLElement).style.background='transparent'; (e.currentTarget as HTMLElement).style.color='#64748b'; } }}
+            >
+              <div className="w-7 h-7 flex items-center justify-center rounded-lg shrink-0"
+                style={{ background: active ? `${color}15` : 'rgba(30,41,59,0.5)', border: `1px solid ${active ? color + '30' : 'rgba(100,116,139,0.1)'}` }}>
+                <Icon className="w-3.5 h-3.5" style={{ color: active ? color : '#475569' }} />
+              </div>
+              <span className="font-orbitron text-xs tracking-wider">{name}</span>
+              {active && <ChevronRight className="w-3 h-3 ml-auto" style={{ color }} />}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Footer */}
+      <div className="p-4 space-y-1" style={{ borderTop: '1px solid rgba(100,116,139,0.12)' }}>
+        {user && (
+          <div className="px-3 py-2 mb-2">
+            <p className="font-orbitron text-[9px] tracking-widest text-slate-600 uppercase mb-0.5">Signed in as</p>
+            <p className="text-slate-400 text-xs truncate font-rajdhani">{user.email}</p>
+          </div>
+        )}
+        <Link href="/"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200"
+          style={{ color: '#64748b' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background='rgba(100,116,139,0.08)'; (e.currentTarget as HTMLElement).style.color='#94a3b8'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background='transparent'; (e.currentTarget as HTMLElement).style.color='#64748b'; }}
+        >
+          <div className="w-7 h-7 flex items-center justify-center rounded-lg" style={{ background: 'rgba(30,41,59,0.5)', border: '1px solid rgba(100,116,139,0.1)' }}>
+            <Home className="w-3.5 h-3.5 text-slate-500" />
+          </div>
+          <span className="font-orbitron text-xs tracking-wider">กลับสู่หน้าหลัก</span>
+        </Link>
+
+        <button onClick={handleSignOut}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200"
+          style={{ color: '#64748b' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background='rgba(244,63,94,0.08)'; (e.currentTarget as HTMLElement).style.color='#fb7185'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background='transparent'; (e.currentTarget as HTMLElement).style.color='#64748b'; }}
+        >
+          <div className="w-7 h-7 flex items-center justify-center rounded-lg" style={{ background: 'rgba(30,41,59,0.5)', border: '1px solid rgba(100,116,139,0.1)' }}>
+            <LogOut className="w-3.5 h-3.5 text-slate-500" />
+          </div>
+          <span className="font-orbitron text-xs tracking-wider">ออกจากระบบ</span>
+        </button>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="flex h-screen bg-gray-50 text-gray-900 font-sans">
-      {/* Sidebar - Desktop */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 transition-transform duration-200 ease-in-out`}>
-        <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200">
-          <span className="text-lg font-bold text-gray-800">
-            Admin Panel
-          </span>
-          <button className="md:hidden text-gray-500 hover:text-gray-700" onClick={() => setSidebarOpen(false)}>
-             <Menu size={20} />
-          </button>
-        </div>
-        
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.path;
-            return (
-              <Link
-                key={item.path}
-                href={item.path}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
-                  isActive
-                    ? "bg-blue-50 text-blue-700 font-medium"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                }`}
-              >
-                <Icon size={18} className={isActive ? "text-blue-600" : "text-gray-400"} />
-                {item.name}
-              </Link>
-            );
-          })}
-        </nav>
+    <div className="flex h-screen bg-slate-950 text-slate-200 overflow-hidden">
 
-        <div className="p-4 border-t border-gray-200 space-y-1">
-          {user && (
-            <div className="px-4 py-2 text-xs text-gray-400 truncate">
-              {user.email}
-            </div>
-          )}
-          <Link
-            href="/"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-md text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-          >
-            <LogOut size={18} className="text-gray-400" />
-            กลับสู่หน้าหลัก
-          </Link>
-          <button
-            onClick={handleSignOut}
-            className="flex items-center gap-3 px-4 py-2.5 rounded-md text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors w-full"
-          >
-            <Shield size={18} className="text-red-400" />
-            ออกจากระบบ
-          </button>
-        </div>
+      {/* ── Desktop sidebar ── */}
+      <aside className="hidden md:flex flex-col w-64 shrink-0 relative"
+        style={{ background: 'rgba(10,15,30,0.95)', borderRight: '1px solid rgba(100,116,139,0.12)', backdropFilter: 'blur(20px)' }}>
+        <div className="absolute top-0 right-0 w-[1px] h-full"
+          style={{ background: 'linear-gradient(to bottom,transparent,rgba(34,211,238,0.15) 30%,rgba(34,211,238,0.15) 70%,transparent)' }} />
+        <SidebarContent />
       </aside>
 
-      {/* Mobile overlay */}
+      {/* ── Mobile sidebar overlay ── */}
       {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-gray-900/50 z-40 md:hidden" 
-          onClick={() => setSidebarOpen(false)}
-        />
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
+          <aside className="relative w-72 flex flex-col z-10"
+            style={{ background: 'rgba(10,15,30,0.98)', borderRight: '1px solid rgba(100,116,139,0.15)', backdropFilter: 'blur(20px)' }}>
+            <SidebarContent />
+          </aside>
+        </div>
       )}
 
-      {/* Main Content Area */}
+      {/* ── Main ── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Mobile Header */}
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center px-4 md:hidden">
-            <button 
-              className="p-2 text-gray-500 hover:text-gray-700 rounded-md hover:bg-gray-100 mr-2"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <Menu size={20} />
-            </button>
-            <span className="text-lg font-bold text-gray-800">
-              Admin
-            </span>
+
+        {/* Mobile header */}
+        <header className="md:hidden flex items-center gap-3 px-4 py-4"
+          style={{ background: 'rgba(10,15,30,0.9)', borderBottom: '1px solid rgba(100,116,139,0.12)', backdropFilter: 'blur(20px)' }}>
+          <button onClick={() => setSidebarOpen(true)}
+            className="w-9 h-9 flex items-center justify-center rounded-xl transition-all duration-200"
+            style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(100,116,139,0.2)', color: '#64748b' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor='rgba(34,211,238,0.35)'; (e.currentTarget as HTMLElement).style.color='#22d3ee'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor='rgba(100,116,139,0.2)'; (e.currentTarget as HTMLElement).style.color='#64748b'; }}>
+            <Menu className="w-4 h-4" />
+          </button>
+          <span className="font-orbitron font-black text-sm tracking-widest"
+            style={{ background: 'linear-gradient(135deg,#22d3ee,#a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            ADMIN
+          </span>
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
+        <main className="flex-1 overflow-y-auto p-5 md:p-8">
+          {/* Top neon line */}
+          <div className="fixed top-0 left-0 right-0 h-[1px] pointer-events-none z-10"
+            style={{ background: 'linear-gradient(90deg,transparent,rgba(34,211,238,0.2),transparent)' }} />
           <div className="max-w-5xl mx-auto">
             {children}
           </div>
@@ -227,6 +301,9 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   );
 }
 
+/* ═══════════════════════════════════════
+   EXPORT
+═══════════════════════════════════════ */
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>

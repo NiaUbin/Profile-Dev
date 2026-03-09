@@ -2,115 +2,141 @@
 
 import { useState, useEffect } from "react";
 import {
-  Briefcase,
-  Plus,
-  Edit2,
-  Trash2,
-  Search,
-  ExternalLink,
-  Image as ImageIcon,
-  Save,
-  X,
-  CheckCircle,
-  AlertCircle,
+  Briefcase, Plus, Edit2, Trash2, Search, ExternalLink,
+  Image as ImageIcon, Save, X, CheckCircle, AlertCircle, Loader2, Github
 } from "lucide-react";
 import {
-  getProjects,
-  addProject,
-  updateProject,
-  deleteProject,
-  ProjectData,
+  getProjects, addProject, updateProject, deleteProject, ProjectData,
 } from "@/lib/firestore";
+
+/* ── Type colours ── */
+const TYPE_CONFIG: Record<string, { color: string; border: string; bg: string; label: string }> = {
+  frontend:  { color: '#22d3ee', border: 'rgba(34,211,238,0.3)',  bg: 'rgba(34,211,238,0.08)',  label: 'Frontend'   },
+  backend:   { color: '#a855f7', border: 'rgba(168,85,247,0.3)', bg: 'rgba(168,85,247,0.08)',  label: 'Backend'    },
+  fullstack: { color: '#10b981', border: 'rgba(16,185,129,0.3)', bg: 'rgba(16,185,129,0.08)',  label: 'Full Stack' },
+};
+const getType = (t?: string) => TYPE_CONFIG[t ?? ''] ?? TYPE_CONFIG.fullstack;
+
+/* ── NeonInput ── */
+const NeonInput: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label?: string; required?: boolean; accent?: string }> = ({ label, required, accent = '#22d3ee', className, ...props }) => {
+  const [focused, setFocused] = useState(false);
+  return (
+    <div className="space-y-1.5">
+      {label && (
+        <label className="font-orbitron text-[9px] tracking-[0.25em] uppercase transition-colors duration-200"
+          style={{ color: focused ? accent : '#64748b' }}>
+          {label}{required && <span className="text-rose-400 ml-1">*</span>}
+        </label>
+      )}
+      <input
+        {...props}
+        onFocus={e => { setFocused(true); props.onFocus?.(e); }}
+        onBlur={e => { setFocused(false); props.onBlur?.(e); }}
+        className={`w-full px-4 py-2.5 text-sm text-slate-200 rounded-xl focus:outline-none transition-all duration-300 placeholder:text-slate-700 ${className ?? ''}`}
+        style={{
+          background: focused ? `${accent}06` : 'rgba(30,41,59,0.7)',
+          border: `1px solid ${focused ? accent + '55' : 'rgba(100,116,139,0.18)'}`,
+          boxShadow: focused ? `0 0 14px ${accent}0d, inset 0 0 14px ${accent}05` : 'none',
+        }}
+      />
+    </div>
+  );
+};
+
+const NeonTextarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label?: string; accent?: string }> = ({ label, accent = '#22d3ee', ...props }) => {
+  const [focused, setFocused] = useState(false);
+  return (
+    <div className="space-y-1.5">
+      {label && (
+        <label className="font-orbitron text-[9px] tracking-[0.25em] uppercase transition-colors duration-200"
+          style={{ color: focused ? accent : '#64748b' }}>{label}</label>
+      )}
+      <textarea
+        {...props}
+        onFocus={e => { setFocused(true); props.onFocus?.(e); }}
+        onBlur={e => { setFocused(false); props.onBlur?.(e); }}
+        className="w-full px-4 py-3 text-sm text-slate-200 rounded-xl focus:outline-none transition-all duration-300 placeholder:text-slate-700 resize-y"
+        style={{
+          background: focused ? `${accent}06` : 'rgba(30,41,59,0.7)',
+          border: `1px solid ${focused ? accent + '55' : 'rgba(100,116,139,0.18)'}`,
+          boxShadow: focused ? `0 0 14px ${accent}0d` : 'none',
+        }}
+      />
+    </div>
+  );
+};
+
+const NeonSelect: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { label?: string; accent?: string }> = ({ label, accent = '#22d3ee', children, ...props }) => {
+  const [focused, setFocused] = useState(false);
+  return (
+    <div className="space-y-1.5">
+      {label && (
+        <label className="font-orbitron text-[9px] tracking-[0.25em] uppercase transition-colors duration-200"
+          style={{ color: focused ? accent : '#64748b' }}>{label}</label>
+      )}
+      <select
+        {...props}
+        onFocus={e => { setFocused(true); props.onFocus?.(e); }}
+        onBlur={e => { setFocused(false); props.onBlur?.(e); }}
+        className="w-full px-4 py-2.5 text-sm text-slate-200 rounded-xl focus:outline-none transition-all duration-300 cursor-pointer"
+        style={{
+          background: focused ? `${accent}06` : 'rgba(30,41,59,0.7)',
+          border: `1px solid ${focused ? accent + '55' : 'rgba(100,116,139,0.18)'}`,
+        }}
+      >
+        {children}
+      </select>
+    </div>
+  );
+};
 
 export default function ProjectsAdmin() {
   const [projects, setProjects] = useState<ProjectData[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
-
-  // Modal state
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingProject, setEditingProject] = useState<ProjectData | null>(null);
+  const [galleryInput, setGalleryInput] = useState("");
   const [formData, setFormData] = useState({
-    title: "",
-    subtitle: "",
-    description: "",
-    category: "Full Stack",
-    image: "",
-    images: [] as string[],
-    tech: "",
-    link: "#",
-    github: "#",
-    type: "fullstack",
-    rarity: "Common",
+    title: '', subtitle: '', description: '', category: 'Full Stack',
+    image: '', images: [] as string[], tech: '', link: '#', github: '#',
+    type: 'fullstack', rarity: 'Common',
   });
 
-  const [galleryInput, setGalleryInput] = useState("");
-
-  const showToast = (type: "success" | "error", message: string) => {
+  const showToast = (type: 'success' | 'error', message: string) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 3000);
   };
 
   const fetchProjects = async () => {
     setLoading(true);
-    try {
-      const data = await getProjects();
-      setProjects(data);
-    } catch (error) {
-      console.error("Error:", error);
-      showToast("error", "ไม่สามารถโหลดข้อมูลได้");
-    } finally {
-      setLoading(false);
-    }
+    try { const data = await getProjects(); setProjects(data); }
+    catch { showToast('error', 'ไม่สามารถโหลดข้อมูลได้'); }
+    finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
+  useEffect(() => { fetchProjects(); }, []);
 
-  const filteredProjects = projects.filter(
-    (project) =>
-      project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.category.toLowerCase().includes(searchTerm.toLowerCase())
+  const filtered = projects.filter(p =>
+    p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const openAddModal = () => {
     setEditingProject(null);
-    setFormData({
-      title: "",
-      subtitle: "",
-      description: "",
-      category: "Full Stack",
-      image: "",
-      images: [] as string[],
-      tech: "",
-      link: "#",
-      github: "#",
-      type: "fullstack",
-      rarity: "Common",
-    });
+    setFormData({ title:'', subtitle:'', description:'', category:'Full Stack', image:'', images:[], tech:'', link:'#', github:'#', type:'fullstack', rarity:'Common' });
     setShowModal(true);
   };
 
   const openEditModal = (project: ProjectData) => {
     setEditingProject(project);
     setFormData({
-      title: project.title,
-      subtitle: project.subtitle || "",
-      description: project.description,
-      category: project.category,
-      image: project.image,
-      images: project.images || [],
-      tech: project.tech.join(", "),
-      link: project.link,
-      github: project.github || "#",
-      type: project.type || "fullstack",
-      rarity: project.rarity || "Common",
+      title: project.title, subtitle: project.subtitle || '', description: project.description,
+      category: project.category, image: project.image, images: project.images || [],
+      tech: project.tech.join(', '), link: project.link, github: project.github || '#',
+      type: project.type || 'fullstack', rarity: project.rarity || 'Common',
     });
     setShowModal(true);
   };
@@ -118,446 +144,347 @@ export default function ProjectsAdmin() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim()) return;
-
     setSaving(true);
     try {
-      const projectData = {
-        title: formData.title,
-        subtitle: formData.subtitle,
-        description: formData.description,
-        category: formData.category,
-        image: formData.image,
-        images: formData.images,
-        tech: formData.tech
-          .split(",")
-          .map((t) => t.trim())
-          .filter(Boolean),
-        link: formData.link,
-        github: formData.github,
-        type: formData.type,
-        rarity: formData.rarity,
+      const data = {
+        ...formData,
+        tech: formData.tech.split(',').map(t => t.trim()).filter(Boolean),
       };
-
-      if (editingProject && editingProject.id) {
-        await updateProject(editingProject.id, projectData);
-        showToast("success", "อัปเดตผลงานสำเร็จ!");
+      if (editingProject?.id) {
+        await updateProject(editingProject.id, data);
+        showToast('success', 'อัปเดตผลงานสำเร็จ!');
       } else {
-        await addProject({ ...projectData, order: projects.length });
-        showToast("success", "เพิ่มผลงานสำเร็จ!");
+        await addProject({ ...data, order: projects.length });
+        showToast('success', 'เพิ่มผลงานสำเร็จ!');
       }
       setShowModal(false);
       await fetchProjects();
-    } catch (error) {
-      console.error("Error:", error);
-      showToast("error", "เกิดข้อผิดพลาด");
-    } finally {
-      setSaving(false);
-    }
+    } catch { showToast('error', 'เกิดข้อผิดพลาด'); }
+    finally { setSaving(false); }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("ต้องการลบผลงานนี้หรือไม่?")) return;
-    try {
-      await deleteProject(id);
-      showToast("success", "ลบผลงานสำเร็จ!");
-      await fetchProjects();
-    } catch (error) {
-      console.error("Error:", error);
-      showToast("error", "เกิดข้อผิดพลาดในการลบ");
-    }
+    if (!confirm('ต้องการลบผลงานนี้หรือไม่?')) return;
+    try { await deleteProject(id); showToast('success', 'ลบผลงานสำเร็จ!'); await fetchProjects(); }
+    catch { showToast('error', 'เกิดข้อผิดพลาดในการลบ'); }
+  };
+
+  const addGalleryImage = () => {
+    if (!galleryInput.trim()) return;
+    setFormData(f => ({ ...f, images: [...f.images, galleryInput.trim()] }));
+    setGalleryInput('');
   };
 
   return (
     <div className="space-y-6">
-      {/* Toast */}
+
+      {/* ── Toast ── */}
       {toast && (
-        <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${
-            toast.type === "success"
-              ? "bg-green-50 text-green-700 border border-green-200"
-              : "bg-red-50 text-red-700 border border-red-200"
-          }`}
-        >
-          {toast.type === "success" ? (
-            <CheckCircle size={18} />
-          ) : (
-            <AlertCircle size={18} />
-          )}
+        <div className="fixed top-5 right-5 z-[100] flex items-center gap-3 px-5 py-3.5 rounded-2xl font-rajdhani font-semibold text-sm transition-all duration-300"
+          style={{
+            background: toast.type === 'success' ? 'rgba(16,185,129,0.12)' : 'rgba(244,63,94,0.12)',
+            border: `1px solid ${toast.type === 'success' ? 'rgba(16,185,129,0.4)' : 'rgba(244,63,94,0.4)'}`,
+            color: toast.type === 'success' ? '#10b981' : '#fb7185',
+            backdropFilter: 'blur(16px)',
+            boxShadow: `0 0 24px ${toast.type === 'success' ? 'rgba(16,185,129,0.15)' : 'rgba(244,63,94,0.15)'}`,
+          }}>
+          {toast.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
           {toast.message}
         </div>
       )}
 
-      {/* Header */}
-      <div className="border-b border-gray-200 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6"
+        style={{ borderBottom: '1px solid rgba(100,116,139,0.15)' }}>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Briefcase className="text-gray-600" size={24} />
-            จัดการผลงาน (Projects)
-          </h1>
-          <p className="text-gray-500 mt-1">
-            เพิ่ม ลบ หรือแก้ไขผลงานพอร์ตโฟลิโอของคุณ ({projects.length} ผลงาน)
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-8 h-8 flex items-center justify-center rounded-lg"
+              style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.25)' }}>
+              <Briefcase className="w-4 h-4 text-purple-400" />
+            </div>
+            <h1 className="font-orbitron font-black text-xl text-white tracking-wider">จัดการผลงาน</h1>
+          </div>
+          <p className="text-slate-500 text-xs font-orbitron tracking-widest ml-11">
+            PORTFOLIO · {projects.length} PROJECTS
           </p>
         </div>
-        <button
-          onClick={openAddModal}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2 text-sm font-medium transition-colors"
-        >
-          <Plus size={16} />
-          เพิ่มผลงานใหม่
+
+        <button onClick={openAddModal}
+          className="group relative flex items-center gap-2 px-5 py-2.5 rounded-xl font-orbitron text-xs font-bold tracking-wider overflow-hidden transition-all duration-300 focus:outline-none"
+          style={{ background: 'linear-gradient(135deg,#22d3ee,#3b82f6)', color: '#020617', boxShadow: '0 0 20px rgba(34,211,238,0.3)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow='0 0 32px rgba(34,211,238,0.5)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow='0 0 20px rgba(34,211,238,0.3)'; }}>
+          <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"
+            style={{ background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent)' }} />
+          <Plus className="w-4 h-4 relative z-10" />
+          <span className="relative z-10">เพิ่มผลงานใหม่</span>
         </button>
       </div>
 
-      {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-3 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-        <div className="relative flex-1">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            size={18}
-          />
-          <input
-            type="text"
-            placeholder="ค้นหาชื่อผลงาน หรือ หมวดหมู่..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
+      {/* ── Search ── */}
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
+        <input
+          type="text" placeholder="ค้นหาชื่อผลงาน หรือ หมวดหมู่..."
+          value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+          className="w-full pl-11 pr-4 py-3 text-sm text-slate-200 rounded-xl focus:outline-none transition-all duration-300 placeholder:text-slate-700"
+          style={{ background: 'rgba(15,23,42,0.7)', border: '1px solid rgba(100,116,139,0.18)', backdropFilter: 'blur(16px)' }}
+        />
       </div>
 
-      {/* Projects Grid */}
+      {/* ── Grid ── */}
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="flex flex-col items-center justify-center py-24 gap-4">
+          <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+          <p className="font-orbitron text-[10px] tracking-widest text-slate-600">กำลังโหลด...</p>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProjects.map((project) => (
-              <div
-                key={project.id}
-                className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm flex flex-col"
-              >
-                {/* Image Container */}
-                <div className="relative h-48 bg-gray-100 border-b border-gray-200 flex-shrink-0">
-                  {project.image ? (
-                    <img
-                      src={project.image}
-                      alt={project.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
-                      <ImageIcon size={32} className="mb-2 opacity-50" />
-                      <span className="text-xs">ไม่มีรูปภาพ</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filtered.map(project => {
+              const tc = getType(project.type);
+              return (
+                <div key={project.id}
+                  className="group flex flex-col rounded-2xl overflow-hidden transition-all duration-300"
+                  style={{ background: 'rgba(15,23,42,0.8)', border: `1px solid ${tc.color}20`, backdropFilter: 'blur(16px)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow=`0 16px 48px ${tc.color}12`; (e.currentTarget as HTMLElement).style.borderColor=`${tc.color}40`; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow='none'; (e.currentTarget as HTMLElement).style.borderColor=`${tc.color}20`; }}
+                >
+                  {/* Image */}
+                  <div className="relative h-44 overflow-hidden" style={{ background: 'rgba(15,23,42,0.9)' }}>
+                    {project.image ? (
+                      <img src={project.image} alt={project.title}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                        <ImageIcon className="w-8 h-8 text-slate-700" />
+                        <span className="font-orbitron text-[9px] tracking-widest text-slate-700">NO IMAGE</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0" style={{ background: 'linear-gradient(to top,rgba(15,23,42,0.9) 0%,rgba(15,23,42,0.1) 60%,transparent 100%)' }} />
+
+                    {/* Type badge */}
+                    <div className="absolute top-3 left-3 px-2.5 py-1 font-orbitron text-[9px] tracking-widest rounded-lg backdrop-blur-sm"
+                      style={{ color: tc.color, border: `1px solid ${tc.border}`, background: tc.bg }}>
+                      {tc.label}
                     </div>
-                  )}
 
-                  <div className="absolute top-3 right-3 flex gap-2">
-                    <button
-                      onClick={() => openEditModal(project)}
-                      className="p-1.5 bg-white text-gray-600 hover:text-blue-600 rounded-md shadow-sm border border-gray-200 hover:border-blue-200 transition-colors"
-                    >
-                      <Edit2 size={14} />
-                    </button>
-                    <button
-                      onClick={() => project.id && handleDelete(project.id)}
-                      className="p-1.5 bg-white text-gray-600 hover:text-red-600 rounded-md shadow-sm border border-gray-200 hover:border-red-200 transition-colors"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    {/* Action buttons */}
+                    <div className="absolute top-3 right-3 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <button onClick={() => openEditModal(project)}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg backdrop-blur-sm transition-all duration-200"
+                        style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(34,211,238,0.3)', color: '#22d3ee' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow='0 0 12px rgba(34,211,238,0.3)'; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow='none'; }}>
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => project.id && handleDelete(project.id)}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg backdrop-blur-sm transition-all duration-200"
+                        style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(244,63,94,0.3)', color: '#fb7185' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow='0 0 12px rgba(244,63,94,0.3)'; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow='none'; }}>
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
 
-                  <span className="absolute top-3 left-3 px-2 py-1 bg-white/90 backdrop-blur-sm border border-gray-200 rounded text-xs font-medium text-gray-700 shadow-sm">
-                    {project.category}
-                  </span>
+                  {/* Content */}
+                  <div className="p-5 flex-1 flex flex-col">
+                    <div className="w-full h-[1px] -mt-1 mb-4" style={{ background: `linear-gradient(90deg,transparent,${tc.color}30,transparent)` }} />
+                    <h3 className="font-orbitron font-bold text-base text-white mb-1 leading-tight">{project.title}</h3>
+                    {project.subtitle && <p className="font-orbitron text-[9px] tracking-widest mb-3" style={{ color: tc.color + 'aa' }}>{project.subtitle}</p>}
+                    {project.description && <p className="text-slate-500 text-xs leading-relaxed mb-4 line-clamp-2">{project.description}</p>}
+
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      {project.tech.map(t => (
+                        <span key={t} className="font-orbitron text-[9px] px-2.5 py-1 rounded-md"
+                          style={{ background: 'rgba(30,41,59,0.8)', color: '#64748b', border: '1px solid rgba(100,116,139,0.12)' }}>
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="flex gap-2 mt-auto pt-4" style={{ borderTop: '1px solid rgba(100,116,139,0.1)' }}>
+                      {project.link && project.link !== '#' && (
+                        <a href={project.link} target="_blank" rel="noreferrer"
+                          className="flex items-center gap-1.5 font-orbitron text-[9px] tracking-widest transition-colors duration-200"
+                          style={{ color: '#64748b' }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = tc.color; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#64748b'; }}>
+                          <ExternalLink className="w-3.5 h-3.5" />LIVE
+                        </a>
+                      )}
+                      {project.github && project.github !== '#' && (
+                        <a href={project.github} target="_blank" rel="noreferrer"
+                          className="flex items-center gap-1.5 font-orbitron text-[9px] tracking-widest transition-colors duration-200"
+                          style={{ color: '#64748b' }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#94a3b8'; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#64748b'; }}>
+                          <Github className="w-3.5 h-3.5" />CODE
+                        </a>
+                      )}
+                    </div>
+                  </div>
                 </div>
-
-                {/* Content Container */}
-                <div className="p-5 flex-1 flex flex-col">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                    {project.title}
-                  </h3>
-                  {project.subtitle && (
-                    <p className="text-xs text-gray-500 mb-2">{project.subtitle}</p>
-                  )}
-                  {project.description && (
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{project.description}</p>
-                  )}
-
-                  <div className="flex flex-wrap gap-1.5 mb-4">
-                    {project.tech.map((t, i) => (
-                      <span
-                        key={i}
-                        className="px-2 py-0.5 text-xs text-gray-600 bg-gray-100 border border-gray-200 rounded"
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="pt-4 mt-auto border-t border-gray-100">
-                    <a
-                      href={project.link}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium"
-                    >
-                      <ExternalLink size={14} />
-                      ดูเว็บไซต์จริง
-                    </a>
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          {filteredProjects.length === 0 && (
-            <div className="text-center py-12 text-gray-500 bg-white border border-gray-200 rounded-lg">
-              <Briefcase size={32} className="mx-auto mb-3 opacity-30" />
-              <p className="text-base font-medium">
-                {projects.length === 0
-                  ? "ยังไม่มีผลงาน เริ่มเพิ่มผลงานแรกของคุณ!"
-                  : "ไม่พบผลงานที่ค้นหา"}
+          {filtered.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-24 gap-4">
+              <div className="w-16 h-16 flex items-center justify-center rounded-2xl"
+                style={{ background: 'rgba(30,41,59,0.6)', border: '1px solid rgba(100,116,139,0.15)' }}>
+                <Briefcase className="w-7 h-7 text-slate-700" />
+              </div>
+              <p className="font-orbitron text-sm text-slate-600">
+                {projects.length === 0 ? 'ยังไม่มีผลงาน เริ่มเพิ่มผลงานแรกได้เลย' : 'ไม่พบผลงานที่ค้นหา'}
               </p>
             </div>
           )}
         </>
       )}
 
-      {/* Add/Edit Modal */}
+      {/* ═══════ MODAL ═══════ */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-10">
-              <h3 className="text-lg font-bold text-gray-800">
-                {editingProject ? "แก้ไขข้อมูลผลงาน" : "เพิ่มผลงานชิ้นใหม่"}
-              </h3>
-              <button
-                onClick={() => setShowModal(false)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <X size={20} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(2,6,23,0.85)', backdropFilter: 'blur(12px)' }}>
+          <div className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl overflow-hidden"
+            style={{ background: 'rgba(10,15,30,0.98)', border: '1px solid rgba(34,211,238,0.2)', boxShadow: '0 0 60px rgba(34,211,238,0.08)' }}>
+
+            {/* Modal header */}
+            <div className="flex items-center justify-between px-6 py-4 shrink-0"
+              style={{ borderBottom: '1px solid rgba(100,116,139,0.15)' }}>
+              <div className="flex items-center gap-3">
+                <div className="w-7 h-7 flex items-center justify-center rounded-lg"
+                  style={{ background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.25)' }}>
+                  {editingProject ? <Edit2 className="w-3.5 h-3.5 text-cyan-400" /> : <Plus className="w-3.5 h-3.5 text-cyan-400" />}
+                </div>
+                <h3 className="font-orbitron font-black text-sm text-white tracking-wider">
+                  {editingProject ? 'แก้ไขผลงาน' : 'เพิ่มผลงานใหม่'}
+                </h3>
+              </div>
+              <button onClick={() => setShowModal(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-200"
+                style={{ color: '#64748b', border: '1px solid transparent' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='#fb7185'; (e.currentTarget as HTMLElement).style.borderColor='rgba(244,63,94,0.3)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='#64748b'; (e.currentTarget as HTMLElement).style.borderColor='transparent'; }}>
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-5">
-              {/* Row 1: Title & Subtitle */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-gray-700">ชื่อผลงาน <span className="text-red-500">*</span></label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="เช่น E-Commerce Platform"
-                    required
-                    className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all"
-                  />
+            {/* Form */}
+            <div className="overflow-y-auto flex-1">
+              <form onSubmit={handleSubmit} className="p-6 space-y-5">
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <NeonInput label="ชื่อผลงาน" required value={formData.title}
+                    onChange={e => setFormData(f => ({ ...f, title: e.target.value }))}
+                    placeholder="เช่น E-Commerce Platform" />
+                  <NeonInput label="ชื่อรอง (Subtitle)" value={formData.subtitle}
+                    onChange={e => setFormData(f => ({ ...f, subtitle: e.target.value }))}
+                    placeholder="เช่น Web Application" />
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-gray-700">ชื่อรอง (Subtitle)</label>
-                  <input
-                    type="text"
-                    value={formData.subtitle}
-                    onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-                    placeholder="เช่น Web Application"
-                    className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all"
-                  />
-                </div>
-              </div>
+                <NeonTextarea label="คำอธิบาย" rows={3} value={formData.description}
+                  onChange={e => setFormData(f => ({ ...f, description: e.target.value }))}
+                  placeholder="เขียนอธิบายเกี่ยวกับผลงานชิ้นนี้..." />
 
-              {/* Row 2: Description */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-gray-700">คำอธิบายรายละเอียด</label>
-                <textarea
-                  rows={3}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="เขียนอธิบายเกี่ยวกับผลงานชิ้นนี้สั้นๆ..."
-                  className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all resize-y"
-                />
-              </div>
-
-              {/* Row 3: Category & Type */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-gray-700">หมวดหมู่ป้ายกำกับ (Badge)</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all cursor-pointer"
-                  >
-                    <option value="Full Stack">Full Stack</option>
-                    <option value="Frontend">Frontend</option>
-                    <option value="Backend">Backend</option>
-                  </select>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <NeonSelect label="หมวดหมู่ป้ายกำกับ" value={formData.category}
+                    onChange={e => setFormData(f => ({ ...f, category: e.target.value }))}>
+                    <option value="Full Stack" className="bg-slate-900">Full Stack</option>
+                    <option value="Frontend" className="bg-slate-900">Frontend</option>
+                    <option value="Backend" className="bg-slate-900">Backend</option>
+                  </NeonSelect>
+                  <NeonSelect label="ประเภทงาน (Filter)" value={formData.type}
+                    onChange={e => setFormData(f => ({ ...f, type: e.target.value }))}>
+                    <option value="fullstack" className="bg-slate-900">Full Stack</option>
+                    <option value="frontend" className="bg-slate-900">Frontend</option>
+                    <option value="backend" className="bg-slate-900">Backend</option>
+                  </NeonSelect>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-gray-700">ประเภทงาน (Filter)</label>
-                  <select
-                    value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                    className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all cursor-pointer"
-                  >
-                    <option value="fullstack">Full Stack</option>
-                    <option value="frontend">Frontend</option>
-                    <option value="backend">Backend</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Row 4: URL Images */}
-              <div className="grid grid-cols-1 gap-5">
+                {/* Cover image */}
                 <div className="space-y-3">
-                  <label className="text-sm font-semibold text-gray-700">URL รูปภาพหลัก (หน้าปก) <span className="text-red-500">*</span></label>
-                  
+                  <NeonInput label="URL รูปภาพหลัก (หน้าปก)" required value={formData.image}
+                    onChange={e => setFormData(f => ({ ...f, image: e.target.value }))}
+                    placeholder="https://example.com/cover.jpg" />
                   {formData.image && (
-                    <div className="w-full max-w-sm aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200 shadow-sm relative mb-2">
-                       <img src={formData.image} alt="Cover Preview" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.src = "")} />
-                       <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-lg pointer-events-none"></div>
+                    <div className="w-full aspect-video rounded-xl overflow-hidden"
+                      style={{ border: '1px solid rgba(100,116,139,0.2)' }}>
+                      <img src={formData.image} alt="preview" className="w-full h-full object-cover" />
                     </div>
                   )}
-
-                  <input
-                    type="text"
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    placeholder="https://example.com/cover.jpg"
-                    required
-                    className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all"
-                  />
                 </div>
-                
-                
-                <div className="space-y-3">
-                  <label className="text-sm font-semibold text-gray-700">แกลเลอรี่รูปภาพเพิ่มเติม</label>
-                  
-                  {/* Current Gallery Images */}
-                  {formData.images.length > 0 && (
-                    <div className="flex flex-col gap-2 mb-3">
-                      {formData.images.map((imgUrl, idx) => (
-                        <div key={idx} className="flex items-center gap-3 bg-white p-2 border border-gray-200 rounded-lg shadow-sm">
-                          <div className="w-12 h-10 flex-shrink-0 bg-gray-100 rounded overflow-hidden relative border border-gray-200">
-                            <img src={imgUrl} alt={`Gallery ${idx+1}`} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.src = "")} />
-                          </div>
-                          <div className="flex-1 truncate text-xs text-gray-500 font-mono">
-                            {imgUrl}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newImages = [...formData.images];
-                              newImages.splice(idx, 1);
-                              setFormData({ ...formData, images: newImages });
-                            }}
-                            className="p-1.5 text-red-500 hover:bg-red-50 hover:text-red-700 rounded-md transition-colors"
-                            title="ลบรูปภาพ"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
 
-                  {/* Input for new Image */}
+                {/* Gallery */}
+                <div className="space-y-3">
+                  <p className="font-orbitron text-[9px] tracking-[0.25em] uppercase text-slate-600">แกลเลอรี่รูปเพิ่มเติม</p>
+                  {formData.images.map((url, i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl"
+                      style={{ background: 'rgba(30,41,59,0.5)', border: '1px solid rgba(100,116,139,0.12)' }}>
+                      <div className="w-12 h-9 rounded-lg overflow-hidden shrink-0">
+                        <img src={url} alt="" className="w-full h-full object-cover" />
+                      </div>
+                      <p className="flex-1 text-xs text-slate-600 font-mono truncate">{url}</p>
+                      <button type="button" onClick={() => setFormData(f => ({ ...f, images: f.images.filter((_, j) => j !== i) }))}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors"
+                        style={{ color: '#64748b' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='#fb7185'; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='#64748b'; }}>
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
                   <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={galleryInput}
-                      onChange={(e) => setGalleryInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          if (galleryInput.trim() !== '') {
-                            setFormData({
-                              ...formData,
-                              images: [...formData.images, galleryInput.trim()]
-                            });
-                            setGalleryInput("");
-                          }
-                        }
-                      }}
-                      placeholder="ใส่ URL รูปภาพ... แล้วกด Enter เพื่อเพิ่ม"
-                      className="flex-1 border border-gray-200 bg-gray-50 rounded-lg px-4 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (galleryInput.trim() !== '') {
-                          setFormData({
-                            ...formData,
-                            images: [...formData.images, galleryInput.trim()]
-                          });
-                          setGalleryInput("");
-                        }
-                      }}
-                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg border border-gray-200 transition-colors"
-                    >
+                    <input type="text" value={galleryInput} onChange={e => setGalleryInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addGalleryImage(); } }}
+                      placeholder="URL รูปภาพ... แล้วกด Enter"
+                      className="flex-1 px-4 py-2.5 text-sm text-slate-200 rounded-xl focus:outline-none transition-all duration-300 placeholder:text-slate-700"
+                      style={{ background: 'rgba(30,41,59,0.7)', border: '1px solid rgba(100,116,139,0.18)' }} />
+                    <button type="button" onClick={addGalleryImage}
+                      className="px-4 py-2.5 rounded-xl font-orbitron text-[10px] tracking-wider transition-all duration-200"
+                      style={{ background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.25)', color: '#22d3ee' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background='rgba(34,211,238,0.18)'; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background='rgba(34,211,238,0.1)'; }}>
                       เพิ่ม
                     </button>
                   </div>
                 </div>
-              </div>
 
-              {/* Row 5: Technologies */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-gray-700">เทคโนโลยีที่ใช้ (คั่นด้วยเครื่องหมาย ,จุลภาค)</label>
-                <input
-                  type="text"
-                  value={formData.tech}
-                  onChange={(e) => setFormData({ ...formData, tech: e.target.value })}
-                  placeholder="React, Next.js, Node.js, MongoDB"
-                  className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all"
-                />
-              </div>
+                <NeonInput label="เทคโนโลยีที่ใช้ (คั่นด้วย ,)" value={formData.tech}
+                  onChange={e => setFormData(f => ({ ...f, tech: e.target.value }))}
+                  placeholder="React, Next.js, Node.js, MongoDB" />
 
-              {/* Row 6: Links */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-gray-700">ลิงก์เว็บไซต์จริง (Live Site)</label>
-                  <input
-                    type="text"
-                    value={formData.link}
-                    onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                    placeholder="https://..."
-                    className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <NeonInput label="ลิงก์ Live Site" value={formData.link}
+                    onChange={e => setFormData(f => ({ ...f, link: e.target.value }))}
+                    placeholder="https://..." />
+                  <NeonInput label="ลิงก์ GitHub" value={formData.github}
+                    onChange={e => setFormData(f => ({ ...f, github: e.target.value }))}
+                    placeholder="https://github.com/..." />
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-gray-700">ลิงก์ GitHub (Source Code)</label>
-                  <input
-                    type="text"
-                    value={formData.github}
-                    onChange={(e) => setFormData({ ...formData, github: e.target.value })}
-                    placeholder="https://github.com/..."
-                    className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white hover:border-gray-300 transition-all"
-                  />
+                {/* Buttons */}
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => setShowModal(false)}
+                    className="flex-1 py-3 rounded-xl font-orbitron text-xs tracking-wider transition-all duration-200"
+                    style={{ background: 'rgba(30,41,59,0.5)', border: '1px solid rgba(100,116,139,0.2)', color: '#64748b' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='#94a3b8'; (e.currentTarget as HTMLElement).style.borderColor='rgba(100,116,139,0.35)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='#64748b'; (e.currentTarget as HTMLElement).style.borderColor='rgba(100,116,139,0.2)'; }}>
+                    ยกเลิก
+                  </button>
+                  <button type="submit" disabled={saving}
+                    className="group relative flex-1 py-3 rounded-xl font-orbitron text-xs font-bold tracking-wider overflow-hidden transition-all duration-300 focus:outline-none disabled:opacity-60 flex items-center justify-center gap-2"
+                    style={{ background: 'linear-gradient(135deg,#22d3ee,#3b82f6)', color: '#020617', boxShadow: '0 0 20px rgba(34,211,238,0.3)' }}>
+                    <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"
+                      style={{ background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent)' }} />
+                    {saving ? <Loader2 className="w-4 h-4 animate-spin relative z-10" /> : <Save className="w-4 h-4 relative z-10" />}
+                    <span className="relative z-10">{saving ? 'กำลังบันทึก...' : 'บันทึกผลงาน'}</span>
+                  </button>
                 </div>
-              </div>
-
-              {/* Buttons */}
-              <div className="flex gap-3 pt-6 mt-2 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
-                >
-                  ยกเลิก
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-semibold transition-colors disabled:opacity-50 shadow-sm"
-                >
-                  <Save size={18} />
-                  {saving ? "กำลังบันทึกข้อมูล..." : "บันทึกผลงาน"}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       )}

@@ -1,180 +1,337 @@
 "use client";
 
-import React from 'react';
-import { CardFrame, ProgressBar } from './GamerUI';
-import { User, Code2, Server, Globe, Zap, Star, Briefcase, GraduationCap, FileText } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { User, Code2, Server, Zap, Briefcase, GraduationCap, Globe, FileText } from 'lucide-react';
 import Image from 'next/image';
 import { useLanguage } from '../contexts/LanguageContext';
 
+/* ═══════════════════════════════════════
+   PARTICLE CANVAS
+═══════════════════════════════════════ */
+const ParticleCanvas: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    let animId: number;
+
+    const resize = () => {
+      canvas.width  = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    type P = { x: number; y: number; r: number; vx: number; vy: number; alpha: number; hue: number };
+    const particles: P[] = Array.from({ length: 45 }, () => ({
+      x:     Math.random() * canvas.width,
+      y:     Math.random() * canvas.height,
+      r:     Math.random() * 1.6 + 0.4,
+      vx:    (Math.random() - 0.5) * 0.25,
+      vy:    -Math.random() * 0.35 - 0.08,
+      alpha: Math.random() * 0.35 + 0.08,
+      hue:   Math.random() > 0.55 ? 190 : 270,   // cyan or purple
+    }));
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.y < -4) { p.y = canvas.height + 4; p.x = Math.random() * canvas.width; }
+        if (p.x < -4) p.x = canvas.width + 4;
+        if (p.x > canvas.width + 4) p.x = -4;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${p.hue}, 90%, 68%, ${p.alpha})`;
+        ctx.fill();
+      });
+      animId = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full pointer-events-none"
+    />
+  );
+};
+
+/* ═══════════════════════════════════════
+   SKILL ROW
+═══════════════════════════════════════ */
+const SkillRow: React.FC<{ name: string; color: string }> = ({ name, color }) => {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      className="flex items-center gap-3.5 px-4 py-3 rounded-xl cursor-default transition-all duration-200"
+      style={{
+        background: hovered ? `${color}0e` : 'rgba(30,41,59,0.55)',
+        border: `1px solid ${hovered ? color + '40' : 'rgba(100,116,139,0.12)'}`,
+        boxShadow: hovered ? `0 0 14px ${color}12` : 'none',
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <span className="w-2.5 h-2.5 rounded-full shrink-0 transition-all duration-300"
+        style={{ background: color, boxShadow: hovered ? `0 0 12px ${color}` : `0 0 5px ${color}70` }} />
+      <span className="font-rajdhani font-semibold text-sm tracking-wide transition-colors duration-200 flex-1"
+        style={{ color: hovered ? '#f1f5f9' : '#94a3b8' }}>
+        {name}
+      </span>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════
+   TOOL TAG
+═══════════════════════════════════════ */
+const ToolTag: React.FC<{ name: string }> = ({ name }) => {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <span
+      className="inline-flex items-center px-3.5 py-1.5 rounded-lg font-rajdhani font-semibold text-sm cursor-default transition-all duration-200"
+      style={{
+        background: hovered ? 'rgba(34,211,238,0.08)' : 'rgba(30,41,59,0.6)',
+        border: `1px solid ${hovered ? 'rgba(34,211,238,0.35)' : 'rgba(100,116,139,0.15)'}`,
+        color: hovered ? '#22d3ee' : '#94a3b8',
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {name}
+    </span>
+  );
+};
+
+/* ═══════════════════════════════════════
+   GLASS CARD
+═══════════════════════════════════════ */
+const GlassCard: React.FC<{ children: React.ReactNode; className?: string; accent?: string }> = ({ children, className = '', accent }) => (
+  <div
+    className={`rounded-2xl p-5 md:p-6 ${className}`}
+    style={{
+      background: 'rgba(15,23,42,0.7)',
+      border: `1px solid ${accent ? `${accent}22` : 'rgba(100,116,139,0.15)'}`,
+      backdropFilter: 'blur(16px)',
+    }}
+  >
+    {children}
+  </div>
+);
+
+/* ═══════════════════════════════════════
+   CARD HEADER
+═══════════════════════════════════════ */
+const CardHeader: React.FC<{ icon: React.ReactNode; title: string; titleColor?: string; iconBg: string; iconBorder: string }> = ({ icon, title, titleColor, iconBg, iconBorder }) => (
+  <div className="flex items-center gap-2.5 mb-5">
+    <div className="w-7 h-7 flex items-center justify-center rounded-lg shrink-0"
+      style={{ background: iconBg, border: `1px solid ${iconBorder}` }}>
+      {icon}
+    </div>
+    <h3 className="font-orbitron text-sm font-bold" style={{ color: titleColor ?? '#f1f5f9' }}>{title}</h3>
+  </div>
+);
+
+/* ═══════════════════════════════════════
+   ABOUT
+═══════════════════════════════════════ */
 export const About: React.FC = () => {
   const { t } = useLanguage();
-  
+
   const frontendSkills = [
-    { name: 'React / Next.js', level: 95, color: 'bg-cyan-500' },
-    { name: 'TypeScript', level: 90, color: 'bg-blue-500' },
-    { name: 'Tailwind CSS', level: 92, color: 'bg-teal-500' },
-    { name: 'Vue.js', level: 75, color: 'bg-emerald-500' },
+    { name: 'React / Next.js', color: '#22d3ee' },
+    { name: 'TypeScript',      color: '#3b82f6' },
+    { name: 'Tailwind CSS',    color: '#14b8a6' },
+    { name: 'Vue.js',          color: '#10b981' },
   ];
 
   const backendSkills = [
-    { name: 'Node.js / Express', level: 88, color: 'bg-purple-500' },
-    { name: 'Database (SQL/NoSQL)', level: 85, color: 'bg-indigo-500' },
-    { name: 'REST API / GraphQL', level: 90, color: 'bg-violet-500' },
-    { name: 'Docker / DevOps', level: 75, color: 'bg-pink-500' },
+    { name: 'Node.js / Express',    color: '#a855f7' },
+    { name: 'Database (SQL/NoSQL)', color: '#818cf8' },
+    { name: 'REST API / GraphQL',   color: '#8b5cf6' },
+    { name: 'Docker / DevOps',      color: '#ec4899' },
+  ];
+
+  const tools = [
+    'React', 'Next.js', 'TypeScript', 'Node.js', 'Express', 'MongoDB',
+    'PostgreSQL', 'Tailwind', 'Git', 'Docker', 'Figma', 'VS Code',
+    'Firebase', 'Google Stitch', 'Gemini AI', 'Antigravity AI',
+  ];
+
+  const profileStats = [
+    { icon: Briefcase,     color: '#22d3ee', labelKey: 'about.experience', valueKey: 'about.experienceValue' },
+    { icon: GraduationCap, color: '#a855f7', labelKey: 'about.education',  valueKey: 'about.educationValue'  },
+    { icon: Globe,         color: '#10b981', labelKey: 'about.location',   valueKey: 'about.locationValue'   },
   ];
 
   return (
-    <div className="section-container">
-      {/* Section Header */}
-      <div className="text-center mb-10 md:mb-16">
-        <h2 className="font-orbitron text-2xl md:text-4xl font-black mb-2 text-white">{t('about.title')}</h2>
-        <p className="text-slate-500 font-orbitron text-[10px] md:text-xs tracking-[0.2em] md:tracking-[0.3em]">{t('about.subtitle')}</p>
+    <div className="section-container relative overflow-hidden">
+
+      {/* ── Particle canvas ── */}
+      <ParticleCanvas />
+
+      {/* Ambient blobs */}
+      <div className="absolute top-0 right-0 w-96 h-96 pointer-events-none"
+        style={{ background: 'radial-gradient(circle at top right,rgba(34,211,238,0.05) 0%,transparent 65%)', filter: 'blur(40px)' }} />
+      <div className="absolute bottom-0 left-0 w-96 h-96 pointer-events-none"
+        style={{ background: 'radial-gradient(circle at bottom left,rgba(168,85,247,0.05) 0%,transparent 65%)', filter: 'blur(40px)' }} />
+
+      {/* ── Section Header ── */}
+      <div className="text-center mb-12 md:mb-16 relative z-10">
+        <div className="inline-flex items-center gap-2 mb-4">
+          <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(90deg,transparent,#22d3ee)' }} />
+          <span className="font-orbitron text-[10px] tracking-[0.4em] text-cyan-400 uppercase">{t('about.subtitle')}</span>
+          <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(90deg,#22d3ee,transparent)' }} />
+        </div>
+        <h2 className="font-orbitron font-black text-white" style={{ fontSize: 'clamp(1.8rem,5vw,3rem)' }}>
+          {t('about.title')}
+        </h2>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 md:gap-12">
-        {/* Left Side: Profile Card */}
-        <div className="lg:w-1/3">
-          <CardFrame className="h-full">
-            {/* Profile Image */}
-            <div className="relative aspect-square w-full max-w-[200px] md:max-w-none mx-auto mb-6 bg-slate-800 rounded-lg overflow-hidden group">
-              <Image 
+      <div className="flex flex-col lg:flex-row gap-6 md:gap-8 relative z-10">
+
+        {/* ── LEFT: Profile ── */}
+        <div className="lg:w-[300px] shrink-0 space-y-4">
+          <GlassCard>
+            {/* Photo */}
+            <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-5 group"
+              style={{ border: '1px solid rgba(34,211,238,0.15)' }}>
+              <Image
                 src="/S__50872323.jpg"
-                alt="Nattawat - Full Stack Developer" 
-                fill
-                sizes="(max-width: 768px) 200px, 100%"
-                className="object-cover opacity-80 group-hover:opacity-100 transition-all duration-700 scale-100 group-hover:scale-110"
+                alt="Nattawat - Full Stack Developer"
+                fill sizes="300px"
+                className="object-cover opacity-85 group-hover:opacity-100 scale-100 group-hover:scale-105 transition-all duration-700"
                 priority
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent"></div>
-              <div className="absolute bottom-3 md:bottom-4 left-3 md:left-4 right-3 md:right-4 flex justify-between items-end">
-                <div>
-                  <h2 className="font-orbitron text-xl md:text-2xl font-black text-white leading-none">Nattawat</h2>
-                  <p className="text-cyan-400 text-[10px] md:text-xs font-orbitron tracking-widest mt-1">Full Stack Developer</p>
+              <div className="absolute inset-0"
+                style={{ background: 'linear-gradient(to top,rgba(2,6,23,0.9) 0%,rgba(2,6,23,0.3) 50%,transparent 100%)' }} />
+              {['top-3 left-3 border-t-2 border-l-2','top-3 right-3 border-t-2 border-r-2','bottom-14 left-3 border-b-2 border-l-2','bottom-14 right-3 border-b-2 border-r-2'].map((cls, i) => (
+                <div key={i} className={`absolute w-5 h-5 border-cyan-400/60 ${cls}`} />
+              ))}
+              <div className="absolute bottom-4 left-4 right-4">
+                <h3 className="font-orbitron text-2xl font-black text-white leading-none">Nattawat</h3>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                  <p className="font-orbitron text-[10px] tracking-widest text-cyan-400 uppercase">Full Stack Developer</p>
                 </div>
               </div>
             </div>
 
-            {/* Quick Info */}
-            <div className="space-y-3 md:space-y-4">
-              <div className="flex items-center gap-3 md:gap-4 p-2.5 md:p-3 bg-slate-800/50 rounded-lg">
-                <Briefcase className="text-cyan-400 w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[9px] md:text-[10px] font-orbitron text-slate-500 uppercase">{t('about.experience')}</p>
-                  <p className="text-xs md:text-sm font-orbitron truncate">{t('about.experienceValue')}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 md:gap-4 p-2.5 md:p-3 bg-slate-800/50 rounded-lg">
-                <GraduationCap className="text-purple-400 w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[9px] md:text-[10px] font-orbitron text-slate-500 uppercase">{t('about.education')}</p>
-                  <p className="text-xs md:text-sm font-orbitron truncate">{t('about.educationValue')}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 md:gap-4 p-2.5 md:p-3 bg-slate-800/50 rounded-lg">
-                <Globe className="text-emerald-400 w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[9px] md:text-[10px] font-orbitron text-slate-500 uppercase">{t('about.location')}</p>
-                  <p className="text-xs md:text-sm font-orbitron truncate">{t('about.locationValue')}</p>
-                </div>
-              </div>
-              
-              {/* View CV Button */}
-              <div className="pt-2">
-                <a 
-                  href="#"
-                  className="w-full relative group flex items-center justify-center gap-2.5 px-4 py-2.5 md:py-3 bg-cyan-500 text-slate-950 border border-cyan-400 rounded-lg font-orbitron text-xs md:text-sm font-bold tracking-wider hover:bg-cyan-400 hover:scale-[1.02] transition-all duration-300 shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(34,211,238,0.6)] overflow-hidden"
+            {/* Stats */}
+            <div className="space-y-2.5">
+              {profileStats.map(({ icon: Icon, color, labelKey, valueKey }) => (
+                <div key={labelKey}
+                  className="flex items-center gap-3 p-3 rounded-xl cursor-default transition-all duration-200"
+                  style={{ background: 'rgba(30,41,59,0.5)', border: '1px solid rgba(100,116,139,0.1)' }}
+                  onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor=`${color}30`; el.style.background=`${color}08`; }}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor='rgba(100,116,139,0.1)'; el.style.background='rgba(30,41,59,0.5)'; }}
                 >
-                  <div className="absolute inset-0 w-full h-full -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-700 ease-in-out"></div>
-                  <FileText className="w-4 h-4 md:w-5 md:h-5 relative z-10 transition-transform duration-300 group-hover:-translate-y-0.5" />
-                  <span className="relative z-10 transition-transform duration-300 group-hover:-translate-y-0.5">VIEW CV</span>
-                </a>
-              </div>
-            </div>
-          </CardFrame>
-        </div>
-
-        {/* Right Side: Bio & Skills */}
-        <div className="lg:w-2/3 flex flex-col gap-4 md:gap-6">
-          {/* Bio */}
-          <CardFrame>
-            <h3 className="font-orbitron text-lg md:text-xl font-bold mb-3 md:mb-4 flex items-center gap-2">
-              <User className="text-cyan-400 w-5 h-5" /> {t('about.introduction')}
-            </h3>
-            <div className="text-slate-400 text-sm md:text-base leading-relaxed font-light space-y-3 md:space-y-4">
-              <p>
-                {t('about.introPart1')} <span className="text-cyan-400 font-medium">Nattawat</span> {t('about.introPart2')} <span className="text-cyan-400">Frontend</span> และ <span className="text-purple-400">Backend</span>
-              </p>
-              <p>
-                {t('about.introPart3')} <span className="text-white font-medium">{t('about.beautiful')}</span>, <span className="text-white font-medium">{t('about.easyToUse')}</span> และ <span className="text-white font-medium">{t('about.fast')}</span> {t('about.introPart4')}
-              </p>
-            </div>
-          </CardFrame>
-
-          {/* Skills Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            {/* Frontend Skills */}
-            <CardFrame>
-              <h3 className="font-orbitron text-base md:text-lg font-bold mb-4 md:mb-6 flex items-center gap-2">
-                <Code2 className="text-cyan-400 w-4 h-4 md:w-5 md:h-5" /> 
-                <span className="text-cyan-400">Frontend</span>
-              </h3>
-              <div className="flex flex-col gap-1.5 md:gap-2">
-                {frontendSkills.map((skill) => (
-                  <div 
-                    key={skill.name} 
-                    className="flex items-center justify-between p-2 md:p-2.5 rounded-lg border border-slate-700/30 bg-slate-800/40 hover:bg-cyan-500/10 hover:border-cyan-500/30 transition-all duration-300 group cursor-default"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${skill.color} opacity-80 group-hover:opacity-100 group-hover:shadow-[0_0_8px_currentColor] transition-all duration-300`}></div>
-                      <span className="text-[10px] md:text-xs font-sans font-medium tracking-wide text-slate-300 group-hover:text-cyan-300 transition-colors">
-                        {skill.name}
-                      </span>
-                    </div>
+                  <div className="w-8 h-8 flex items-center justify-center rounded-lg shrink-0"
+                    style={{ background:`${color}15`, border:`1px solid ${color}30` }}>
+                    <Icon className="w-4 h-4" style={{ color }} />
                   </div>
-                ))}
-              </div>
-            </CardFrame>
-
-            {/* Backend Skills */}
-            <CardFrame>
-              <h3 className="font-orbitron text-base md:text-lg font-bold mb-4 md:mb-6 flex items-center gap-2">
-                <Server className="text-purple-400 w-4 h-4 md:w-5 md:h-5" /> 
-                <span className="text-purple-400">Backend</span>
-              </h3>
-              <div className="flex flex-col gap-1.5 md:gap-2">
-                {backendSkills.map((skill) => (
-                  <div 
-                    key={skill.name} 
-                    className="flex items-center justify-between p-2 md:p-2.5 rounded-lg border border-slate-700/30 bg-slate-800/40 hover:bg-purple-500/10 hover:border-purple-500/30 transition-all duration-300 group cursor-default"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${skill.color} opacity-80 group-hover:opacity-100 group-hover:shadow-[0_0_8px_currentColor] transition-all duration-300`}></div>
-                      <span className="text-[10px] md:text-xs font-sans font-medium tracking-wide text-slate-300 group-hover:text-purple-300 transition-colors">
-                        {skill.name}
-                      </span>
-                    </div>
+                  <div className="min-w-0">
+                    <p className="font-orbitron text-[9px] tracking-[0.2em] uppercase text-slate-500">{t(labelKey)}</p>
+                    <p className="font-orbitron text-xs text-slate-200 truncate mt-0.5">{t(valueKey)}</p>
                   </div>
-                ))}
-              </div>
-            </CardFrame>
-          </div>
-
-          {/* Tools & Technologies */}
-          <CardFrame>
-            <h3 className="font-orbitron text-base md:text-lg font-bold mb-4 flex items-center gap-2">
-              <Zap className="text-yellow-400 w-4 h-4 md:w-5 md:h-5" /> {t('about.tools')}
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {['React', 'Next.js', 'TypeScript', 'Node.js', 'Express', 'MongoDB', 'PostgreSQL', 'Tailwind', 'Git', 'Docker', 'Figma', 'VS Code', 'Google stitch', 'Firebase', 'antigravity AI', 'Gamini AI'].map(tool => (
-                <span 
-                  key={tool} 
-                  className="px-2.5 md:px-3 py-1 md:py-1.5 bg-slate-800/80 border border-slate-700 text-slate-300 text-[10px] md:text-sm font-sans font-medium rounded-md hover:border-cyan-500/50 hover:text-cyan-400 transition-colors cursor-default"
-                >
-                  {tool}
-                </span>
+                </div>
               ))}
             </div>
-          </CardFrame>
+
+            {/* CV button */}
+            <a href="/Professional Modern CV Resume.pdf"
+              className="group relative mt-5 w-full flex items-center justify-center gap-2.5 py-3 rounded-xl font-orbitron text-xs tracking-widest font-bold overflow-hidden transition-all duration-300"
+              style={{ background:'linear-gradient(135deg,#22d3ee,#3b82f6)', color:'#020617', boxShadow:'0 0 20px rgba(34,211,238,0.3)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow='0 0 32px rgba(34,211,238,0.5)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow='0 0 20px rgba(34,211,238,0.3)'; }}
+            >
+              <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"
+                style={{ background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent)' }} />
+              <FileText className="w-4 h-4 relative z-10" />
+              <span className="relative z-10">VIEW CV</span>
+            </a>
+          </GlassCard>
+        </div>
+
+        {/* ── RIGHT: Bio + Skills + Tools ── */}
+        <div className="flex-1 flex flex-col gap-5">
+
+          {/* Bio */}
+          <GlassCard accent="#22d3ee">
+            <CardHeader
+              icon={<User className="w-3.5 h-3.5 text-cyan-400" />}
+              title={t('about.introduction')}
+              iconBg="rgba(34,211,238,0.12)"
+              iconBorder="rgba(34,211,238,0.25)"
+            />
+            <div className="space-y-3 text-slate-400 text-sm leading-relaxed">
+              <p>
+                {t('about.introPart1')}{' '}
+                <span className="text-cyan-400 font-medium">Nattawat</span>{' '}
+                {t('about.introPart2')}{' '}
+                <span className="px-1.5 py-0.5 rounded text-xs font-orbitron" style={{ background:'rgba(34,211,238,0.1)', color:'#22d3ee', border:'1px solid rgba(34,211,238,0.25)' }}>Frontend</span>{' '}
+                และ{' '}
+                <span className="px-1.5 py-0.5 rounded text-xs font-orbitron" style={{ background:'rgba(168,85,247,0.1)', color:'#a855f7', border:'1px solid rgba(168,85,247,0.25)' }}>Backend</span>
+              </p>
+              <p>
+                {t('about.introPart3')}{' '}
+                <span className="text-white font-medium">{t('about.beautiful')}</span>,{' '}
+                <span className="text-white font-medium">{t('about.easyToUse')}</span> และ{' '}
+                <span className="text-white font-medium">{t('about.fast')}</span>{' '}
+                {t('about.introPart4')}
+              </p>
+            </div>
+          </GlassCard>
+
+          {/* Skills grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <GlassCard accent="#22d3ee">
+              <CardHeader
+                icon={<Code2 className="w-3.5 h-3.5 text-cyan-400" />}
+                title="Frontend"
+                titleColor="#22d3ee"
+                iconBg="rgba(34,211,238,0.12)"
+                iconBorder="rgba(34,211,238,0.25)"
+              />
+              <div className="space-y-2">
+                {frontendSkills.map(s => <SkillRow key={s.name} name={s.name} color={s.color} />)}
+              </div>
+            </GlassCard>
+
+            <GlassCard accent="#a855f7">
+              <CardHeader
+                icon={<Server className="w-3.5 h-3.5 text-purple-400" />}
+                title="Backend"
+                titleColor="#a855f7"
+                iconBg="rgba(168,85,247,0.12)"
+                iconBorder="rgba(168,85,247,0.25)"
+              />
+              <div className="space-y-2">
+                {backendSkills.map(s => <SkillRow key={s.name} name={s.name} color={s.color} />)}
+              </div>
+            </GlassCard>
+          </div>
+
+          {/* Tools */}
+          <GlassCard accent="#facc15">
+            <CardHeader
+              icon={<Zap className="w-3.5 h-3.5 text-yellow-400" />}
+              title={t('about.tools')}
+              iconBg="rgba(250,204,21,0.1)"
+              iconBorder="rgba(250,204,21,0.25)"
+            />
+            <div className="flex flex-wrap gap-2">
+              {tools.map(tool => <ToolTag key={tool} name={tool} />)}
+            </div>
+          </GlassCard>
+
         </div>
       </div>
     </div>

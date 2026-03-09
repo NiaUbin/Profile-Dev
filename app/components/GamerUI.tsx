@@ -8,9 +8,10 @@ interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'danger';
   className?: string;
   disabled?: boolean;
+  type?: 'button' | 'submit' | 'reset';
 }
 
-export const GameButton: React.FC<ButtonProps> = ({ children, onClick, variant = 'primary', className = '', disabled = false }) => {
+export const GameButton: React.FC<ButtonProps> = ({ children, onClick, variant = 'primary', className = '', disabled = false, type }) => {
   const baseStyles = "relative px-6 py-2 font-orbitron text-sm uppercase tracking-widest transition-all duration-300 overflow-hidden group";
   
   const variants = {
@@ -20,7 +21,7 @@ export const GameButton: React.FC<ButtonProps> = ({ children, onClick, variant =
   };
 
   return (
-    <button onClick={onClick} disabled={disabled} className={`${baseStyles} ${variants[variant]} ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+    <button type={type} onClick={onClick} disabled={disabled} className={`${baseStyles} ${variants[variant]} ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
       <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
       <span className="relative z-10 flex items-center justify-center gap-2">{children}</span>
       <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-current transition-all group-hover:w-4 group-hover:h-4"></div>
