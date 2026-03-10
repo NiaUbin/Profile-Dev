@@ -294,9 +294,9 @@ export const Projects: React.FC = () => {
         style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.04) 0%, transparent 70%)', filter: 'blur(60px)' }} />
 
       {/* ── Header ── */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 md:mb-14 gap-6 relative z-10">
-        <div>
-          <div className="inline-flex items-center gap-2 mb-3">
+      <div className="flex flex-col items-center text-center mb-10 md:mb-14 gap-6 relative z-10">
+        <div className="w-full flex flex-col items-center">
+          <div className="inline-flex items-center justify-center gap-2 mb-3">
             <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(90deg,transparent,#22d3ee)' }} />
             <span className="font-orbitron text-[10px] tracking-[0.4em] text-cyan-400 uppercase">PROJECTS.EXE</span>
             <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(90deg,#22d3ee,transparent)' }} />
@@ -311,7 +311,7 @@ export const Projects: React.FC = () => {
 
         {/* Filter pills */}
         <div
-          className="flex flex-wrap gap-2 p-1.5 rounded-2xl"
+          className="flex flex-wrap justify-center gap-2 p-1.5 rounded-2xl w-full max-w-[500px]"
           style={{ background: 'rgba(15,23,42,0.7)', border: '1px solid rgba(100,116,139,0.15)', backdropFilter: 'blur(16px)' }}
         >
           {filters.map(f => {
