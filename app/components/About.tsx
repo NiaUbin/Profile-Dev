@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { User, Code2, Server, Zap, Briefcase, GraduationCap, Globe, FileText } from 'lucide-react';
 import Image from 'next/image';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getAboutData, AboutData } from '@/lib/firestore';
 
 /* ═══════════════════════════════════════
    PARTICLE CANVAS
@@ -144,31 +145,45 @@ const CardHeader: React.FC<{ icon: React.ReactNode; title: string; titleColor?: 
 ═══════════════════════════════════════ */
 export const About: React.FC = () => {
   const { t } = useLanguage();
+  const [aboutData, setAboutData] = useState<AboutData | null>(null);
 
-  const frontendSkills = [
+  useEffect(() => {
+    getAboutData().then(setAboutData).catch(console.error);
+  }, []);
+
+  // Fallback defaults while loading or on error
+  const data = aboutData;
+
+  const frontendSkills = data?.frontendSkills ?? [
     { name: 'React / Next.js', color: '#22d3ee' },
     { name: 'TypeScript',      color: '#3b82f6' },
     { name: 'Tailwind CSS',    color: '#14b8a6' },
     { name: 'Vue.js',          color: '#10b981' },
   ];
 
-  const backendSkills = [
+  const backendSkills = data?.backendSkills ?? [
     { name: 'Node.js / Express',    color: '#a855f7' },
     { name: 'Database (SQL/NoSQL)', color: '#818cf8' },
     { name: 'REST API / GraphQL',   color: '#8b5cf6' },
     { name: 'Docker / DevOps',      color: '#ec4899' },
   ];
 
-  const tools = [
+  const tools = data?.tools ?? [
     'React', 'Next.js', 'TypeScript', 'Node.js', 'Express', 'MongoDB',
     'PostgreSQL', 'Tailwind', 'Git', 'Docker', 'Figma', 'VS Code',
     'Firebase', 'Google Stitch', 'Gemini AI', 'Antigravity AI',
   ];
 
+  const displayName = data?.name ?? 'Nattawat';
+  const displayRole = data?.role ?? 'Full Stack Developer';
+  const avatarUrl = data?.avatarUrl ?? '/profile.webp';
+  const cvUrl = data?.cvUrl ?? '/Professional Modern CV Resume.pdf';
+  const highlightName = data?.highlightName ?? 'Nattawat';
+
   const profileStats = [
-    { icon: Briefcase,     color: '#22d3ee', labelKey: 'about.experience', valueKey: 'about.experienceValue' },
-    { icon: GraduationCap, color: '#a855f7', labelKey: 'about.education',  valueKey: 'about.educationValue'  },
-    { icon: Globe,         color: '#10b981', labelKey: 'about.location',   valueKey: 'about.locationValue'   },
+    { icon: Briefcase,     color: '#22d3ee', label: t('about.experience'), value: data?.experience ?? t('about.experienceValue') },
+    { icon: GraduationCap, color: '#a855f7', label: t('about.education'),  value: data?.education ?? t('about.educationValue')  },
+    { icon: Globe,         color: '#10b981', label: t('about.location'),   value: data?.location ?? t('about.locationValue')   },
   ];
 
   return (
@@ -204,8 +219,8 @@ export const About: React.FC = () => {
             <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-5 group"
               style={{ border: '1px solid rgba(34,211,238,0.15)' }}>
               <Image
-                src="/profile.webp"
-                alt="Nattawat - Full Stack Developer"
+                src={avatarUrl}
+                alt={`${displayName} - ${displayRole}`}
                 fill sizes="300px"
                 className="object-cover opacity-85 group-hover:opacity-100 scale-100 group-hover:scale-105 transition-all duration-700"
                 priority
@@ -216,18 +231,18 @@ export const About: React.FC = () => {
                 <div key={i} className={`absolute w-5 h-5 border-cyan-400/60 ${cls}`} />
               ))}
               <div className="absolute bottom-4 left-4 right-4">
-                <h3 className="font-orbitron text-2xl font-black text-white leading-none">Nattawat</h3>
+                <h3 className="font-orbitron text-2xl font-black text-white leading-none">{displayName}</h3>
                 <div className="flex items-center gap-2 mt-1.5">
                   <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                  <p className="font-orbitron text-[10px] tracking-widest text-cyan-400 uppercase">Full Stack Developer</p>
+                  <p className="font-orbitron text-[10px] tracking-widest text-cyan-400 uppercase">{displayRole}</p>
                 </div>
               </div>
             </div>
 
             {/* Stats */}
             <div className="space-y-2.5">
-              {profileStats.map(({ icon: Icon, color, labelKey, valueKey }) => (
-                <div key={labelKey}
+              {profileStats.map(({ icon: Icon, color, label, value }) => (
+                <div key={label}
                   className="flex items-center gap-3 p-3 rounded-xl cursor-default transition-all duration-200"
                   style={{ background: 'rgba(30,41,59,0.5)', border: '1px solid rgba(100,116,139,0.1)' }}
                   onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor=`${color}30`; el.style.background=`${color}08`; }}
@@ -238,15 +253,15 @@ export const About: React.FC = () => {
                     <Icon className="w-4 h-4" style={{ color }} />
                   </div>
                   <div className="min-w-0">
-                    <p className="font-orbitron text-[9px] tracking-[0.2em] uppercase text-slate-500">{t(labelKey)}</p>
-                    <p className="font-orbitron text-[11px] leading-tight text-slate-200 mt-0.5">{t(valueKey)}</p>
+                    <p className="font-orbitron text-[9px] tracking-[0.2em] uppercase text-slate-500">{label}</p>
+                    <p className="font-orbitron text-[11px] leading-tight text-slate-200 mt-0.5">{value}</p>
                   </div>
                 </div>
               ))}
             </div>
 
             {/* CV button */}
-            <a href="/Professional Modern CV Resume.pdf"
+            <a href={cvUrl}
               className="group relative mt-5 w-full flex items-center justify-center gap-2.5 py-3 rounded-xl font-orbitron text-xs tracking-widest font-bold overflow-hidden transition-all duration-300"
               style={{ background:'linear-gradient(135deg,#22d3ee,#3b82f6)', color:'#020617', boxShadow:'0 0 20px rgba(34,211,238,0.3)' }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow='0 0 32px rgba(34,211,238,0.5)'; }}
@@ -273,19 +288,19 @@ export const About: React.FC = () => {
             />
             <div className="space-y-3 text-slate-400 text-sm leading-relaxed">
               <p>
-                {t('about.introPart1')}{' '}
-                <span className="text-cyan-400 font-medium">Nattawat</span>{' '}
-                {t('about.introPart2')}{' '}
+                {data?.introPart1 ?? t('about.introPart1')}{' '}
+                <span className="text-cyan-400 font-medium">{highlightName}</span>{' '}
+                {data?.introPart2 ?? t('about.introPart2')}{' '}
                 <span className="px-1.5 py-0.5 rounded text-xs font-orbitron" style={{ background:'rgba(34,211,238,0.1)', color:'#22d3ee', border:'1px solid rgba(34,211,238,0.25)' }}>Frontend</span>{' '}
                 และ{' '}
                 <span className="px-1.5 py-0.5 rounded text-xs font-orbitron" style={{ background:'rgba(168,85,247,0.1)', color:'#a855f7', border:'1px solid rgba(168,85,247,0.25)' }}>Backend</span>
               </p>
               <p>
-                {t('about.introPart3')}{' '}
+                {data?.introPart3 ?? t('about.introPart3')}{' '}
                 <span className="text-white font-medium">{t('about.beautiful')}</span>,{' '}
                 <span className="text-white font-medium">{t('about.easyToUse')}</span> และ{' '}
                 <span className="text-white font-medium">{t('about.fast')}</span>{' '}
-                {t('about.introPart4')}
+                {data?.introPart4 ?? t('about.introPart4')}
               </p>
             </div>
           </GlassCard>

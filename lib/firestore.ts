@@ -42,6 +42,88 @@ export async function incrementVisits(): Promise<void> {
   }
 }
 
+// ==================== ABOUT DATA ====================
+
+export interface AboutSkill {
+  name: string;
+  color: string;
+}
+
+export interface AboutData {
+  // Profile card
+  name: string;
+  role: string;
+  avatarUrl: string;
+  cvUrl: string;
+  experience: string;
+  education: string;
+  location: string;
+  // Bio text
+  introPart1: string;
+  introPart2: string;
+  introPart3: string;
+  introPart4: string;
+  highlightName: string;
+  // Skills
+  frontendSkills: AboutSkill[];
+  backendSkills: AboutSkill[];
+  // Tools
+  tools: string[];
+}
+
+const DEFAULT_ABOUT: AboutData = {
+  name: "Nattawat",
+  role: "Full Stack Developer",
+  avatarUrl: "/profile.webp",
+  cvUrl: "/Professional Modern CV Resume.pdf",
+  experience: "3+ ปี พัฒนาเว็บ",
+  education: "วิศวกรรมคอมพิวเตอร์และสารสนเทศ",
+  location: "กรุงเทพฯ, ประเทศไทย",
+  introPart1: "สวัสดีครับ! ผมคือ",
+  introPart2: "โปรแกรมเมอร์ที่หลงใหลในการพัฒนาเว็บไซต์และแอปพลิเคชัน ผมเชี่ยวชาญทั้ง",
+  introPart3: "ผมสร้างเว็บไซต์ที่",
+  introPart4: "บนทุกอุปกรณ์ ไม่ว่าจะเป็นมือถือหรือคอมพิวเตอร์",
+  highlightName: "Nattawat",
+  frontendSkills: [
+    { name: "React / Next.js", color: "#22d3ee" },
+    { name: "TypeScript", color: "#3b82f6" },
+    { name: "Tailwind CSS", color: "#14b8a6" },
+    { name: "Vue.js", color: "#10b981" },
+  ],
+  backendSkills: [
+    { name: "Node.js / Express", color: "#a855f7" },
+    { name: "Database (SQL/NoSQL)", color: "#818cf8" },
+    { name: "REST API / GraphQL", color: "#8b5cf6" },
+    { name: "Docker / DevOps", color: "#ec4899" },
+  ],
+  tools: [
+    "React", "Next.js", "TypeScript", "Node.js", "Express", "MongoDB",
+    "PostgreSQL", "Tailwind", "Git", "Docker", "Figma", "VS Code",
+    "Firebase", "Google Stitch", "Gemini AI", "Antigravity AI",
+  ],
+};
+
+export async function getAboutData(): Promise<AboutData> {
+  try {
+    const docRef = doc(db, "settings", "about");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { ...DEFAULT_ABOUT, ...docSnap.data() } as AboutData;
+    }
+    // If no about data exists, create default
+    await setDoc(docRef, DEFAULT_ABOUT);
+    return DEFAULT_ABOUT;
+  } catch (error) {
+    console.error("Error getting about data:", error);
+    return DEFAULT_ABOUT;
+  }
+}
+
+export async function updateAboutData(data: Partial<AboutData>): Promise<void> {
+  const docRef = doc(db, "settings", "about");
+  await setDoc(docRef, data, { merge: true });
+}
+
 // ==================== PROFILE ====================
 
 export interface ProfileData {
